@@ -36,7 +36,7 @@ Pandas Series 类似表格中的一个列（column），类似于一维数组，
   ```python
   pandas.Series( data, index, dtype, name, copy)
   ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Pandas_Pic/1.png)
 ### 2.参数说明
 
 - **data**：一组数据(ndarray 类型)。
@@ -148,6 +148,10 @@ dtype: int32
   - **列和行：** `DataFrame` 由多个列组成，每一列都有一个名称，可以看作是一个 `Series`。同时，`DataFrame` 有一个行索引，用于标识每一行。
   - **二维结构：** `DataFrame` 是一个二维表格，具有行和列。可以将其视为多个 `Series` 对象组成的字典。
   - **列的数据类型：** 不同的列可以包含不同的数据类型，例如整数、浮点数、字符串等。
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Pandas_Pic/2.png)
+
+- DataFrame 可视为由多个 Series 组成的数据结构：
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Pandas_Pic/3.png)
 
 - 语法
 

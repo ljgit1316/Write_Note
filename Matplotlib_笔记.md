@@ -89,45 +89,45 @@
 
         | 标记               | 符号                           | 描述                                         |
         | :----------------- | :----------------------------- | :------------------------------------------- |
-        | "."                | ![m00](media/mypicturem00.png) | 点                                           |
-        | ","                | ![m01](media/mypicturem01.png) | 像素点                                       |
-        | "o"                | ![m02](media/mypicturem02.png) | 实心圆                                       |
-        | "v"                | ![m03](media/mypicturem03.png) | 下三角                                       |
-        | "^"                | ![m04](media/mypicturem04.png) | 上三角                                       |
-        | "<"                | ![m05](media/mypicturem05.png) | 左三角                                       |
-        | ">"                | ![m06](media/mypicturem06.png) | 右三角                                       |
-        | "1"                | ![m07](media/mypicturem07.png) | 下三叉                                       |
-        | "2"                | ![m08](media/mypicturem08.png) | 上三叉                                       |
-        | "3"                | ![m09](media/mypicturem09.png) | 左三叉                                       |
-        | "4"                | ![m10](media/mypicturem10.png) | 右三叉                                       |
-        | "8"                | ![m11](media/mypicturem11.png) | 八角形                                       |
-        | "s"                | ![m12](media/mypicturem12.png) | 正方形                                       |
-        | "p"                | ![m13](media/mypicturem13.png) | 五边形                                       |
-        | "P"                | ![m23](media/mypicturem23.png) | 加号（填充）                                 |
-        | "*"                | ![m14](media/mypicturem14.png) | 星号                                         |
-        | "h"                | ![m15](media/mypicturem15.png) | 六边形 1                                     |
-        | "H"                | ![m16](media/mypicturem16.png) | 六边形 2                                     |
-        | "+"                | ![m17](media/mypicturem17.png) | 加号                                         |
-        | "x"                | ![m18](media/mypicturem18.png) | 乘号 x                                       |
-        | "X"                | ![m24](media/mypicturem24.png) | 乘号 x (填充)                                |
-        | "D"                | ![m19](media/mypicturem19.png) | 菱形                                         |
-        | "d"                | ![m20](media/mypicturem20.png) | 瘦菱形                                       |
-        | "\|"               | ![m21](media/mypicturem21.png) | 竖线                                         |
-        | "_"                | ![m22](media/mypicturem22.png) | 横线                                         |
-        | 0 (TICKLEFT)       | ![m25](media/mypicturem25.png) | 左横线                                       |
-        | 1 (TICKRIGHT)      | ![m26](media/mypicturem26.png) | 右横线                                       |
-        | 2 (TICKUP)         | ![m27](media/mypicturem27.png) | 上竖线                                       |
-        | 3 (TICKDOWN)       | ![m28](media/mypicturem28.png) | 下竖线                                       |
-        | 4 (CARETLEFT)      | ![m29](media/mypicturem29.png) | 左箭头                                       |
-        | 5 (CARETRIGHT)     | ![m30](media/mypicturem30.png) | 右箭头                                       |
-        | 6 (CARETUP)        | ![m31](media/mypicturem31.png) | 上箭头                                       |
-        | 7 (CARETDOWN)      | ![m32](media/mypicturem32.png) | 下箭头                                       |
-        | 8 (CARETLEFTBASE)  | ![m33](media/mypicturem33.png) | 左箭头 (中间点为基准)                        |
-        | 9 (CARETRIGHTBASE) | ![m34](media/mypicturem34.png) | 右箭头 (中间点为基准)                        |
-        | 10 (CARETUPBASE)   | ![m35](media/mypicturem35.png) | 上箭头 (中间点为基准)                        |
-        | 11 (CARETDOWNBASE) | ![m36](media/mypicturem36.png) | 下箭头 (中间点为基准)                        |
+        | "."                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem00.png) | 点                                           |
+        | ","                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem01.png)| 像素点                                       |
+        | "o"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem02.png) | 实心圆                                       |
+        | "v"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem03.png) | 下三角                                       |
+        | "^"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem04.png)| 上三角                                       |
+        | "<"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem05.png)| 左三角                                       |
+        | ">"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem06.png)| 右三角                                       |
+        | "1"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem07.png)| 下三叉                                       |
+        | "2"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem08.png)| 上三叉                                       |
+        | "3"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem09.png) | 左三叉                                       |
+        | "4"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem10.png)| 右三叉                                       |
+        | "8"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem11.png)| 八角形                                       |
+        | "s"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem12.png) | 正方形                                       |
+        | "p"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem13.png) | 五边形                                       |
+        | "P"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem23.png)| 加号（填充）                                 |
+        | "*"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem14.png) | 星号                                         |
+        | "h"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem15.png) | 六边形 1                                     |
+        | "H"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem16.png) | 六边形 2                                     |
+        | "+"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem17.png)| 加号                                         |
+        | "x"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem18.png) | 乘号 x                                       |
+        | "X"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem24.png)| 乘号 x (填充)                                |
+        | "D"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem19.png)| 菱形                                         |
+        | "d"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem20.png)| 瘦菱形                                       |
+        | "\|"               | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem21.png)| 竖线                                         |
+        | "_"                | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem22.png)| 横线                                         |
+        | 0 (TICKLEFT)       | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem25.png) | 左横线                                       |
+        | 1 (TICKRIGHT)      | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem26.png) | 右横线                                       |
+        | 2 (TICKUP)         | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem26.png) | 上竖线                                       |
+        | 3 (TICKDOWN)       | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem27.png) | 下竖线                                       |
+        | 4 (CARETLEFT)      | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem29.png)| 左箭头                                       |
+        | 5 (CARETRIGHT)     | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem30.png)| 右箭头                                       |
+        | 6 (CARETUP)        | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem31.png)| 上箭头                                       |
+        | 7 (CARETDOWN)      | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem32.png)| 下箭头                                       |
+        | 8 (CARETLEFTBASE)  | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem33.png) | 左箭头 (中间点为基准)                        |
+        | 9 (CARETRIGHTBASE) | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem34.png)| 右箭头 (中间点为基准)                        |
+        | 10 (CARETUPBASE)   | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem35.png)| 上箭头 (中间点为基准)                        |
+        | 11 (CARETDOWNBASE) | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem36.png) | 下箭头 (中间点为基准)                        |
         | "None", " " or ""  |                                | 没有任何标记                                 |
-        | '$...$'            | ![m37](media/mypicturem37.png) | 渲染指定的字符。例如 "$f$" 以字母 f 为标记。 |
+        | '$...$'            | ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypicturem37.png)| 渲染指定的字符。例如 "$f$" 以字母 f 为标记。 |
 
 ### 1.绘制直线图
 
@@ -151,7 +151,7 @@ y = np.array([10, 6, 7, 3])
 plt.plot(x, y)  # 绘制图案
 plt.show()  # 将图案显示出来
 ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231125202226743.png)
 
 
 ### 3.省略x轴的值
@@ -165,7 +165,7 @@ y = np.array([3.6, 9.0, 1.2, 11.2])
 plt.plot(y)
 plt.show()
 ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231125204420220.png)
 
 
 ### 4.绘制sin和cos图案
@@ -181,7 +181,7 @@ z = np.cos(x)
 plt.plot(x, y, "r-",  x, z, "b--", linewidth=4)  #这里的linewidth必须放在最后，但也可以写多条plot函数调用
 plt.show()
 ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231125204841299.png)
 
 
 ### 5.绘制圆形图案
@@ -201,6 +201,9 @@ plt.plot(x, y, "r")
 plt.show()
 
 ```
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231128132338919.png)
+
 
 ## Matplotlib轴标签和标题
 
@@ -232,7 +235,7 @@ plt.title("正旋函数")
 plt.plot(x, y, linewidth=2, marker="o")
 plt.show()
 ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231127131014775.png)
 
 
 ## Matplotlib显示中文问题
@@ -293,6 +296,9 @@ plt.show()
   # 参数4：color设置刻度颜色
   plt.show()
   ```
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231128222924086.png)
+
+  
 
 ## Matplotlib绘制多图
 
@@ -349,6 +355,9 @@ y = np.cos(x)
 plt.plot(x, y)
 plt.show()
 ```
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231128224940046.png)
+
+
 
 ### 2.subplots
 
@@ -393,6 +402,10 @@ plt.show()
   ax[1, 1].plot(x, y)
   plt.show()
   ```
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231128231058822.png)
+
+
+  
 
 ## Matplotlib绘制散点图
 
@@ -445,6 +458,10 @@ plt.show()
   plt.scatter(x, y, s=40, c=color)
   plt.show()
   ```
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231128233840102.png)
+
+
+
 
 ## Matplotlib柱形图
 
@@ -486,6 +503,10 @@ plt.show()
   ax[1, 1].barh(x, y, height=0.5, color=color)
   plt.show()
   ```
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129000427860.png)
+
+
+  
 
 ## Matplotlib饼图
 
@@ -538,6 +559,8 @@ plt.show()
   plt.show()
   ```
 
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129001813176.png)
+
 
 
 ## Matplotlib直方图
@@ -579,7 +602,7 @@ plt.show()
   plt.hist(x, bins=40, alpha=1)
   plt.show()
   ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129141932090.png)
   
 
   
@@ -607,7 +630,7 @@ plt.show()
   plt.show()
   ```
 
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129143746900.png)
 
 
 
@@ -689,7 +712,7 @@ plt.imshow(img, cmap="summer_r")
 plt.colorbar()
 plt.show()
 ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129151728426.png)
 
 
 
@@ -706,7 +729,7 @@ plt.axis("off")  # 关闭轴的显示
 plt.show()
 ```
 
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129152508552.png)
 
 
 
@@ -741,7 +764,7 @@ matplotlib.pyplot.imsave(fname, arr, **kwargs)
   plt.show()
   
   ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129163728602.png)
 
 
 
@@ -774,5 +797,5 @@ matplotlib.pyplot.imread(fname, format=None)
   plt.imshow(img)
   plt.show()
   ```
-
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Matplotlib_Pic/mypictureimage-20231129170157309.png)
   

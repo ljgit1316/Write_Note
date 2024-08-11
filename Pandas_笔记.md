@@ -685,7 +685,8 @@ with open('test.json','r') as f:
 很多数据集存在数据缺失、数据格式错误、错误数据或重复数据的情况，如果要使数据分析更加准确，就需要对这些没有用的数据进行处理
 ```
 
-![image-20240811175316799](C:\Users\13167\AppData\Roaming\Typora\typora-user-images\image-20240811175316799.png)
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Pandas_Pic/8.png)
 
 上表包含了四种空数据：
 
@@ -707,7 +708,7 @@ print (df['NUM_BEDROOMS'].isnull())
 
 效果：
 
-![image-20240811175637585](C:\Users\13167\AppData\Roaming\Typora\typora-user-images\image-20240811175637585.png)
+![](https://github.com/ljgit1316/Picture_resource/blob/main/Pandas_Pic/7.png)
 
 ```python
 #Pandas 把 n/a 和 NA 当作空数据，na 不是空数据，可以指定空数据类型

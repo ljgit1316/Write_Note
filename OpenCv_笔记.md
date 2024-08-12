@@ -6,11 +6,11 @@
 
 日常生活中常见的图像是RGB三原色图。RGB图上的每个点都是由红（R）、绿（G）、蓝（B）三个颜色按照一定比例混合而成的，几乎所有颜色都可以通过这三种颜色按照不同比例调配而成。在计算机中，RGB三种颜色被称为RGB三通道，根据这三个通道存储的像素值，来对应不同的颜色。例如，在使用“画图”软件进行自定义调色时，其数值单位就是像素。如下图所示：
 
-![red](C:\Users\13167\Desktop\OpenCv_Pic_test\red.png)
+![red](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/red.png)
 
-![blue](C:\Users\13167\Desktop\OpenCv_Pic_test\blue.png)
+![blue](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/blue.png)
 
-![green](C:\Users\13167\Desktop\OpenCv_Pic_test\green.png)
+![green](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/green.png)
 
 ### 2.图像
 
@@ -20,19 +20,19 @@
 
 一幅二值图像的二维矩阵仅由0、1两个值构成，“0”代表黑色，“1”代白色。由于每一像素（矩阵中每一元素）取值仅有0、1两种可能，所以计算机中二值图像的数据类型通常为1个二进制位。二值图像通常用于文字、线条图的扫描识别（OCR）和掩膜图像的存储。
 
-![cat2](C:\Users\13167\Desktop\OpenCv_Pic_test\cat2.png)
+![cat2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat2.png)
 
 #### 2.2灰度图
 
 每个像素只有一个采样颜色的图像，这类图像通常显示为从最暗黑色到最亮的白色的灰度，尽管理论上这个采样可以任何颜色的不同深浅，甚至可以是不同亮度上的不同颜色。灰度图像与黑白图像不同，在计算机图像领域中黑白图像只有黑色与白色两种颜色；但是，灰度图像在黑色与白色之间还有许多级的颜色深度。灰度图像经常是在单个电磁波频谱如可见光内测量每个像素的亮度得到的，用于显示的灰度图像通常用每个采样像素8位的非线性尺度来保存，这样可以有256级灰度（如果用16位，则有65536级）。
 
-![cat3](C:\Users\13167\Desktop\OpenCv_Pic_test\cat3.png)
+![cat3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat3.png)
 
 #### 2.3彩色图
 
 每个像素通常是由红（R）、绿（G）、蓝（B）三个分量来表示的，分量介于（0，255）。RGB图像与索引图像一样都可以用来表示彩色图像。与索引图像一样，它分别用红（R）、绿（G）、蓝（B）三原色的组合来表示每个像素的颜色。但与索引图像不同的是，RGB图像每一个像素的颜色值（由RGB三原色表示）直接存放在图像矩阵中，由于每一像素的颜色需由R、G、B三个分量来表示，M、N分别表示图像的行列数，三个M x N的二维矩阵分别表示各个像素的R、G、B三个颜色分量。RGB图像的数据类型一般为8位无符号整形，通常用于表示和存放真彩色图像。
 
-![cat1](C:\Users\13167\Desktop\OpenCv_Pic_test\cat1.png)
+![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png)
 
 实例：生成一个512*512大小的彩色图片  每一个像素点随机颜色
 
@@ -55,7 +55,7 @@ cv2.waitKey(0)
 
 ```
 
-![random](C:\Users\13167\Desktop\OpenCv_Pic_test\random.png)
+![random](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/random.png)
 
 ## OpenCv基础的图像操作
 
@@ -103,7 +103,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![QQ图片20240812170336](C:\Users\13167\Desktop\OpenCv_Pic_test\imshow_pic.png)
+![QQ图片20240812170336](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/imshow_pic.png)
 
 ### 3.保存图像
 
@@ -157,7 +157,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![line_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\line_pic.png)
+![line_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/line_pic.png)
 
 ### 2.绘制圆形
 
@@ -186,7 +186,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![circle_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\circle_pic.png)
+![circle_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/circle_pic.png)
 
 ### 3.绘制矩形
 
@@ -214,7 +214,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![tangle_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\tangle_pic.png)
+![tangle_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tangle_pic.png)
 
 ### 4.图像中添加文字
 
@@ -257,7 +257,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![txt_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\txt_pic.png)
+![txt_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/txt_pic.png)
 
 ### 5.获取并修改图像中的像素点
 
@@ -275,7 +275,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-![point_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\point_pic.png)
+![point_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/point_pic.png)
 
 ### 6.捕获摄像头的实时视频流
 
@@ -317,7 +317,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![max](C:\Users\13167\Desktop\OpenCv_Pic_test\max.png)
+  ![max](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/max.png)
 
 - 代码
 
@@ -333,7 +333,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![max_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\max_pic.png)
+  ![max_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/max_pic.png)
 
 ### 2.平均值法
 
@@ -343,7 +343,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![overage](C:\Users\13167\Desktop\OpenCv_Pic_test\overage.png)
+  ![overage](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/overage.png)
 
 - 代码
 
@@ -361,7 +361,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![overage_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\overage_pic.png)
+  ![overage_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/overage_pic.png)
 
 ### 3.加权均值法
 
@@ -371,7 +371,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![weight](C:\Users\13167\Desktop\OpenCv_Pic_test\weight.png)
+  ![weight](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/weight.png)
 
 - 代码
 
@@ -391,13 +391,13 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![weight_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\weight_pic.png)
+  ![weight_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/weight_pic.png)
 
 ### 4.极端的灰度值
 
 - 图示
 
-  | ![black](E:\AI-Study\python学习\opencv笔记\opencv笔记\02灰度实验\media\black.png) | ![white](E:\AI-Study\python学习\opencv笔记\opencv笔记\02灰度实验\media\white.png) |
+  | ![black](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/black.png) | ![white](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/white.png) |
   | ------------------------------------------------------------ | ------------------------------------------------------------ |
   | 灰度值为0（纯黑）                                            | 灰度值为255（纯白）                                          |
 
@@ -413,7 +413,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![yu](C:\Users\13167\Desktop\OpenCv_Pic_test\yu.png)
+  ![yu](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/yu.png)
 
 - 代码
 
@@ -426,7 +426,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![yu_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\yu_pic.png)
+  ![yu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/yu_pic.png)
 
 ### 2.反阈值法（THRESH_BINARY_INV）
 
@@ -436,7 +436,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![fan_yu](C:\Users\13167\Desktop\OpenCv_Pic_test\fan_yu.png)
+  ![fan_yu](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/fan_yu.png)
 
 - 代码
 
@@ -449,7 +449,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![fan_yu_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\fan_yu_pic.png)
+  ![fan_yu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/fan_yu_pic.png)
 
 ### 3.截断阈值法（THRESH_TRUNC）
 
@@ -459,7 +459,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![jie_yu](C:\Users\13167\Desktop\OpenCv_Pic_test\jie_yu.png)
+  ![jie_yu](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/jie_yu.png)
 
 - 代码
 
@@ -472,7 +472,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![jie_yu_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\jie_yu_pic.png)
+  ![jie_yu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/jie_yu_pic.png)
 
 ### 4.低阈值零处理（THRESH_TOZERO）
 
@@ -482,7 +482,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![di_yu](C:\Users\13167\Desktop\OpenCv_Pic_test\di_yu.png)
+  ![di_yu](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/di_yu.png)
 
 - 代码
 
@@ -495,7 +495,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![di_yu_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\di_yu_pic.png)
+  ![di_yu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/di_yu_pic.png)
 
 ### 5.超阈值零处理（THRESH_TOZERO_INV）
 
@@ -505,7 +505,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![chao_yu](C:\Users\13167\Desktop\OpenCv_Pic_test\chao_yu.png)
+  ![chao_yu](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/chao_yu.png)
 
 - 代码
 
@@ -518,34 +518,23 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![chao_yu_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\chao_yu_pic.png)
+  ![chao_yu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/chao_yu_pic.png)
 
 ### 6.OTSU阈值法
 
 - 定义
 
   OTSU算法是通过一个值将这张图分前景色和背景色（也就是灰度图中小于这个值的是一类，大于这个值的是一类），通过统计学方法（最大类间方差）来验证该值的合理性，当根据该值进行分割时，使用最大类间方差计算得到的值最大时，该值就是二值化算法中所需要的阈值。通常该值是从灰度图中的最小值加1开始进行迭代计算，直到灰度图中的最大像素值减1，然后把得到的最大类间方差值进行比较，来得到二值化的阈值。
-  $$
-  \begin{aligned}
-  &T：阈值\\
-  &N_{0}：前景像素点数\\
-  &N_{1}：背景像素点数\\
-  &\omega_{0}：前景的像素点数占整幅图像的比例\\
-  &\omega_{1}：背景的像素点数占整幅图像的比例\\
-  &\mathcal{U_{0}}：前景的平均像素值\\
-  &\mathcal{U_{1}}：背景的平均像素值\\
-  &\mathcal{U}：整幅图的平均像素值\\
-  &rows×cols：图像的行数和列数
-  \end{aligned}
-  $$
+  
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/OTSU_pic.png)
   
 - 图示
 
-  ![double](C:\Users\13167\Desktop\OpenCv_Pic_test\double.png)
+  ![double](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double.png)
 
   下面举个例子，有一张大小为4×4的图片，假设阈值T为1:
 
-  ![double_test](C:\Users\13167\Desktop\OpenCv_Pic_test\double_test.png)
+  ![double_test](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_test.png)
 
   也就是这张图片根据阈值1分为了前景（像素为2的部分）和背景（像素为0）的部分，并且计算出了OTSU算法所需要的各个数据，根据上面的数据，我们给出计算方差的公式：
 
@@ -559,9 +548,9 @@ cv2.waitKey(0)
 
   注意：使用OTSU算法计算阈值时，组件中的thresh参数将不再有任何作用。
 
-  | ![double_table1](C:\Users\13167\Desktop\OpenCv_Pic_test\double_table1.png) | ![double_table2](C:\Users\13167\Desktop\OpenCv_Pic_test\double_table2.png) |
+  | ![double_table1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_table1.png) | ![double_table2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_table2.png) |
   | ------------------------------------------------------------ | ------------------------------------------------------------ |
-  | ![double_3](C:\Users\13167\Desktop\OpenCv_Pic_test\double_3.png) | ![double_table4](C:\Users\13167\Desktop\OpenCv_Pic_test\double_table4.png) |
+  | ![double_3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_3.png) | ![double_table4](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_table4.png) |
   | 方法                                                         | 效果                                                         |
 
 - 代码
@@ -575,7 +564,7 @@ cv2.waitKey(0)
   cv2.waitKey(0)
   ```
 
-  ![double_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\double_pic.png)
+  ![double_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_pic.png)
 
 ## 图像自适应二值化
 
@@ -587,7 +576,7 @@ cv2.waitKey(0)
 
 - 图示
 
-  ![adapt_overage](C:\Users\13167\Desktop\OpenCv_Pic_test\adapt_overage.png)
+  ![adapt_overage](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adapt_overage.png)
 
 - 语法
 
@@ -613,11 +602,11 @@ cv2.waitKey(0)
 
 ### 1.取均值
 
-![adapt_overage_example](C:\Users\13167\Desktop\OpenCv_Pic_test\adapt_overage_example.png)
+![adapt_overage_example](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adapt_overage_example.png)
 
 ​		如我们使用的小区域是3\*3的，那么就会从图片的左上角开始（也就是像素值为162的地方）计算其邻域内的平均值，如果处于边缘地区就会对边界进行填充，填充值就是边界的像素点，如下图所示：
 
-![adapt_overage](C:\Users\13167\Desktop\OpenCv_Pic_test\adapt_overage.png)
+![adapt_overage](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adapt_overage.png)
 
 ​		那么对于左上角像素值为162的这个点，161（也就是上图中括号内的计算结果，结果会进行取整）就是根据平均值计算出来的阈值，接着减去一个固定值C，得到的结果就是左上角这个点的二值化阈值了，接着根据选取的是阈值法还是反阈值法进行二值化操作。紧接着，向右滑动计算每个点的邻域内的平均值，直到计算出右下角的点的阈值为止。我们所用到的不断滑动的小区域被称之为核，比如3\*3的小区域叫做3\*3的核，并且核的大小都是奇数个，也就是3\*3、5\*5、7\*7等
 
@@ -632,7 +621,7 @@ cv2.imshow('adaptive',pic_adaptive)
 cv2.waitKey(0)
 ```
 
-![adaptive_overage_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\adaptive_overage_pic.png)
+![adaptive_overage_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adaptive_overage_pic.png)
 
 ### 2.加权求和
 
@@ -641,26 +630,23 @@ cv2.waitKey(0)
   对小区域内的像素进行加权求和得到新的阈值，其权重值来自于高斯分布。
 
   高斯分布，通过概率密度函数来定义高斯分布，一维高斯概率分布函数为：
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_spacx.png)
 
-  $$
-  p(y)={\frac{1}{\sigma{\sqrt{2\pi}}}}e^{{\frac{-(y-\mu)^{2}}{2\sigma^{2}}}}
-  $$
 
 - 图示
 
   通过改变函数中和的值，我们可以得到如下图像，其中均值为，标准差为。
 
-  ![tai](C:\Users\13167\Desktop\OpenCv_Pic_test\tai.png)
+  ![tai](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tai.png)
 
   此时我们拓展到二维图像，一般情况下我们使x轴和y轴的相等并且，此时我们可以得到二维高斯函数的表达式为：
 
-  $$
-  g(x,y)=\frac{1}{2\pi\sigma ^{2}}e^{-\frac{(x^{2}+y^{2})}{2\sigma^{2}}}
-  $$
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_spacx_two.png)
 
   高斯概率函数是相对于二维坐标产生的，其中（x,y）为点坐标，要得到一个高斯滤波器模板，应先对高斯函数进行离散化，将得到的值作为模板的系数。例如：要产生一个3\*3的高斯权重核，以核的中心位置为坐标原点进行取样，其周围的坐标如下图所示（x轴水平向右，y轴竖直向上）
 
-  ![spax](C:\Users\13167\Desktop\OpenCv_Pic_test\spax.png)
+  ![spax](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/spax.png)
 
   将坐标带入上面的公式中，即可得到一个高斯权重核。
 
@@ -676,17 +662,11 @@ cv2.waitKey(0)
 
   比如kernel的尺寸为3\*3时，使用
 
-$$
-  \left[\begin{array}{c}{{0.25}}\\ {{0.5}}\\ {{0.25}}\end{array}\right]\times\left[0.25~~~~0.5~~~~0.25\right]
-$$
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/kernel_one.png)
 
   进行矩阵的乘法，就会得到如下的权重值，其他的类似。
 
-$$
-  kernel=\left[\begin{array}{c}{{0.0625~~~0.125~~~0.0625}}\\{{0.125~~~~0.25~~~~0.125}}\\
-  {{0.0625~~~0.125~~~0.0625}}
-  \end{array}\right]
-$$
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/kernel_two.png)
 
   通过这个高斯核，即可对图片中的每个像素去计算其阈值，并将该阈值减去固定值得到最终阈值，然后根据二值化规则进行二值化。
 
@@ -698,7 +678,7 @@ $$
 
   某像素点的阈值计算过程如下图所示：
 
-  ![gauss_count](C:\Users\13167\Desktop\OpenCv_Pic_test\gauss_count.png)
+  ![gauss_count](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_count.png)
 
   首先还是对边界进行填充，然后计算原图中的左上角（也就是162像素值的位置）的二值化阈值，其计算过程如上图所示，再然后根据选择的二值化方法对左上角的像素点进行二值化，之后核向右继续计算第二个像素点的阈值，第三个像素点的阈值…直到右下角（也就是155像素值的位置）为止。
 
@@ -717,4 +697,4 @@ $$
   cv2.waitKey(0)
   ```
 
-  ![adaptive_gauss_pic](C:\Users\13167\Desktop\OpenCv_Pic_test\adaptive_gauss_pic.png)
+  ![adaptive_gauss_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adaptive_gauss_pic.png)

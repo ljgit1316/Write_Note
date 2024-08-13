@@ -698,3 +698,509 @@ $$
   ```
 
   ![adaptive_gauss_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/adaptive_gauss_pic.png)
+
+
+## 图形形态学变换
+
+​		形态学变换是一种基于形状的简单变换，它的处理对象通常是二值化图像。形态学变换有两个输入，一个输出：输入为原图像、核（结构化元素），输出为形态学变换后的图像。其基本操作有腐蚀和膨胀，这两种操作是相反的，即较亮的像素会被腐蚀和膨胀。
+
+### 1.核
+
+- 定义
+
+  核（kernel）是一个小区域，通常为3\*3、5\*5、7\*7大小，有着其自己的结构，比如矩形结构、椭圆结构、十字形结构，通过不同的结构可以对不同特征的图像进行形态学操作的处理。
+
+- 图示
+
+  ![kernel](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/kernel.png)
+
+### 2.腐蚀
+
+- 定义
+
+  （找核区域中最小值，替换目标元素值）
+
+  ​		使用核在原图（二值化图）上进行从左到右、从上到下的滑动（也就是从图像的左上角开始，滑动到图像的右下角）。**在滑动过程中，令核值为1的区域与被核覆盖的对应区域进行相乘，得到其最小值，该最小值就是卷积核覆盖区域的中心像素点的新像素值，接着继续滑动。**
+
+  ​		由于操作图像为二值图，所以不是黑就是白，这就意味着，**在被核值为1覆盖的区域内，只要有黑色（像素值为0），那么该区域的中心像素点必定为黑色（0）。**这样做的结果就是会将二值化图像中的白色部分尽可能的压缩，如下图所示，该图经过腐蚀之后，“变瘦”了。
+
+- 图示
+
+  | ![erode_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/erode_1.png) |
+  | ------------------------------------------------------------ |
+  | ![erode_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/erode_2.png) |
+
+- 流程
+
+  1. **初始化**：
+
+     - 设置一个起始位置（通常从图像的左上角开始）。
+     - 准备好结构元素（structuring element），它是一个小的矩阵，大小通常是奇数，并且有一个明确的中心点。
+
+  2. **逐像素处理**： 对于输入图像中的每一个像素，执行以下步骤：
+
+     a. **定位**： 将结构元素移动到当前待处理像素的位置，使得结构元素的中心与该像素对齐。
+
+     b. **区域覆盖**： 结构元素会覆盖图像上的一个局部邻域，这个邻域由结构元素的尺寸决定。
+
+     c. **条件检查**： 检查结构元素覆盖区域内所有图像像素的颜色。对于二值图像来说，就是看这些像素是否都是白色（前景像素）。如果所有被结构元素覆盖的像素均为白色，则继续下一个步骤；否则，跳过此步骤，将中心像素视为背景像素。
+
+     d. **侵蚀决策**： 如果结构元素覆盖的所有像素都是白色，则原图像中的中心像素保持不变（在输出图像中仍为白色）；否则，将中心像素变为黑色（在输出图像中变为背景色）。
+
+  3. **迭代移动**： 结构元素沿着图像从左到右、从上到下逐行逐列地移动，重复上述过程，直到整个图像都被结构元素遍历过。
+
+  4. **循环处理**： 如果指定了多个迭代次数，那么在整个图像完成一次遍历后，再次从头开始进行同样的遍历和侵蚀决策，直到达到指定的迭代次数。
+
+- 代码
+
+  ```python
+  pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+  kernel=np.ones((3,3),dtype=np.uint8)
+  pic_erode=cv2.erode(pic,kernel,iterations=3)
+  #iterations：迭代次数，默认值为1。如果设置大于1的值，那么腐蚀操作将连续执行指定的次数。每次迭代都会使得图像中的白色（高亮或前景）区域根据结构元素的形状进一步收缩。
+  cv2.imshow('word',pic)
+  cv2.imshow('erode_word',pic_erode)
+  cv2.waitKey(0)
+  ```
+
+  | ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_erode](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_erode.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 灰度图                                                       | 腐蚀图                                                       |
+
+### 3.膨胀
+
+- 定义
+
+  （找核区域中最大值，替换目标元素值）
+
+  ​		**膨胀与腐蚀刚好相反**，膨胀操作就是使用核在原图（二值化图）上进行从左到右、从上到下的滑动（也就是从图像的左上角开始，滑动到图像的右下角），**在滑动过程中，令核值为1的区域与被核覆盖的对应区域进行相乘，得到其最大值，该最大值就是核覆盖区域的中心像素点的新像素值，接着继续滑动。**
+
+  ​		由于操作图像为二值图，所以不是黑就是白，**这就意味着，在卷积核覆盖的区域内，只要有白色（像素值为255），那么该区域的中心像素点必定为白色（255）。这样做的结果就是会将二值化图像中的白色部分尽可能的扩张**，如下图所示，该图经过膨胀之后，“变胖”了。
+
+- 图示
+
+  ![word_dilate](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_dilate.png)
+
+- 流程
+
+  1. **初始化**：
+
+     - 设置一个起始位置（通常从图像的左上角开始）。
+     - 准备好结构元素（structuring element），它是一个小的矩阵，大小通常是奇数，并且有一个明确的中心点。
+
+  2. **逐像素处理**： 对于输入图像中的每一个像素，执行以下步骤：
+
+     a. **定位**： 将结构元素移动到当前待处理像素的位置，使得结构元素的中心与该像素对齐。
+
+     b. **区域覆盖**： 结构元素会覆盖图像上的一个局部邻域，这个邻域由结构元素的尺寸决定。
+
+     c. **条件检查**： 检查结构元素覆盖区域内是否存在白色（前景）像素。对于二值图像来说，如果有任何一个被结构元素覆盖的像素是白色的，则继续下一步；否则，将中心像素保持原样（黑色或非目标物体像素不变）。
+
+     d. **膨胀决策**： 如果在结构元素覆盖的范围内找到了至少一个白色像素，则无论原中心像素是什么颜色，都将输出图像中的该中心像素设置为白色（前景色）。这表示即使原中心像素可能是背景像素，但只要其周围有白色像素存在，就认为该位置也应属于前景区域。
+
+     e. **更新输出**： 根据上述判断结果更新输出图像对应位置的像素值。
+
+  3. **迭代移动**： 结构元素沿着图像从左到右、从上到下逐行逐列地移动，重复上述过程，直到整个图像都被结构元素遍历过。
+
+  4. **循环处理**： 如果指定了多个迭代次数，那么在整个图像完成一次遍历后，再次从头开始进行同样的遍历和膨胀决策，直到达到指定的迭代次数。
+
+- 代码
+
+  ```python
+  pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+  kernel=np.ones((3,3),dtype=np.uint8)
+  pic_dilate=cv2.dilate(pic,kernel,iterations=3)
+  cv2.imshow('word',pic)
+  cv2.imshow('dilate_word',pic_dilate)
+  cv2.waitKey(0)
+  ```
+
+| ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_dia](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_dia.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 灰度图                                                       | 膨胀图                                                       |
+
+### 4.开运算
+
+开运算是先腐蚀后膨胀，其**作用**是：分离物体，消除小区域。**特点**：消除噪点，去除小的干扰块，而不影响原来的图像
+
+```python
+pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+kernel=np.ones((3,3),dtype=np.uint8)
+pic_open=cv2.morphologyEx(pic,cv2.MORPH_OPEN,kernel)
+cv2.imshow('word',pic)
+cv2.imshow('open_word',pic_open)
+cv2.waitKey(0)
+```
+
+| ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_open](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_open.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 灰度图                                                       | 开运算效果图                                                 |
+
+### 5.闭运算
+
+闭运算与开运算相反，是先膨胀后腐蚀，**作用**是消除/“闭合”物体里面的孔洞，**特点**：可以填充闭合区域
+
+```python
+pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+kernel=np.ones((3,3),dtype=np.uint8)
+pic_close=cv2.morphologyEx(pic,cv2.MORPH_CLOSE,kernel)
+cv2.imshow('word',pic)
+cv2.imshow('erode_word',pic_close)
+cv2.waitKey(0)
+```
+
+| ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_close](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_close.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 灰度图                                                       | 闭运算效果图                                                 |
+
+### 6.礼帽运算
+
+- 定义
+
+  ​		**原图像与“开运算“的结果图之差,**因为开运算带来的结果是放大了裂缝或者局部低亮度的区域，因此，从原图中减去开运算后的图，得到的效果图突出了比原图轮廓周围的区域更明亮的区域，且这一操作和选择的核的大小相关。
+
+  ​		礼帽运算用来分离比邻近点亮一些的斑块。当一幅图像具有大幅的背景的时候，而微小物品比较有规律的情况下，可以使用礼帽运算进行背景提取
+
+- 代码
+
+  ```python
+  pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+  kernel=np.ones((5,5),dtype=np.uint8)
+  pic_tophat=cv2.morphologyEx(pic,cv2.MORPH_BLACKHAT,kernel)
+  cv2.imshow('pic_tophat',pic_tophat)
+  cv2.waitKey(0)
+  ```
+
+  | ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_tophat](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_tophat.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 灰度图                                                       | 礼帽运算                                                     |
+
+### 7.黑帽运算
+
+- 定义
+
+  黑帽运算为”闭运算“的结果图与原图像之差,
+
+  黑帽运算后的效果图突出了比原图轮廓周围的区域更暗的区域，且这一操作和选择的核的大小相关。
+
+  黑帽运算用来分离比邻近点暗一些的斑块
+
+- 代码
+
+  ```python
+  pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+  kernel=np.ones((5,5),dtype=np.uint8)
+  blackhat=cv2.morphologyEx(pic,cv2.MORPH_BLACKHAT,kernel)
+  cv2.imshow('blackhat',blackhat)
+  cv2.waitKey(0)
+  ```
+
+  | ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_blackhat](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_blackhat.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 灰度图                                                       | 黑帽运算                                                     |
+
+### 8.形态学梯度
+
+- 定义
+
+  形态学梯度是一个基于结构元素的图像处理方法，它通过比较原图像与膨胀图和腐蚀图之间的差异来突出图像边缘特征。
+
+  具体来说，对于图像中的每个像素点，其形态学梯度值是**该像素点在膨胀后的图像值与其在腐蚀后的图像值之差**。这样得到的结果通常能够强化图像的边缘信息，并且对噪声有一定的抑制作用
+
+- 代码
+
+  ```python
+  pic=cv2.imread('black_word.png',cv2.IMREAD_GRAYSCALE)
+  kernel=np.ones((5,5),dtype=np.uint8)
+  gradient=cv2.morphologyEx(pic,cv2.MORPH_GRADIENT,kernel)
+  cv2.imshow('blackhat',gradient)
+  cv2.waitKey(0)
+  ```
+
+  | ![word_yuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_yuan.png) | ![word_gradient](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/word_gradient.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 灰度图                                                       | 梯度图                                                       |
+
+## 图像颜色识别
+
+### 1.RGB颜色空间
+
+​		在图像处理中，最常见的就是RGB颜色空间。RGB颜色空间是我们接触最多的颜色空间，是一种用于表示和显示彩色图像的一种颜色模型。RGB代表红色(Red)、绿色(Green)和蓝色(Blue)，这三种颜色通过不同强度的光的组合来创建其他颜色。
+
+​		RGB颜色模型基于笛卡尔坐标系，如下图所示，RGB原色值位于3个角上，二次色青色、红色和黄色位于另外三个角上，黑色位于原点处，白色位于离原点最远的角上。因为黑色在RGB三通道中表现为（0，0，0），所以映射到这里就是原点；而白色是（255，255，255），所以映射到这里就是三个坐标为最大值的点。
+
+![RGB_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/RGB_pic.jpeg)
+
+
+
+​		在OpenCV中，颜色是以BGR的方式进行存储的，而不是RGB，这也是上面红色的像素值是（0，0，255）而不是（255，0，0）的原因。
+
+### 2.颜色加法
+
+- 定义
+
+  使用OpenCV的cv.add()函数把两幅图像相加，或者可以简单地通过numpy操作添加两个图像，如res = img1 + img2。两个图像应该具有相同的大小和类型。
+
+- cv加法和numpy加法
+
+  ```python
+  #OpenCV的加法是饱和操作
+  #Numpy添加是模运算
+  x = np.uint8([250])
+  y = np.uint8([10])
+  print( cv.add(x,y) ) # 250+10 = 260 => 255 => [[255]]
+  print( x+y )         # 250+10 = 260 % 256 = 4 =>[4]
+  ```
+
+- 实例
+
+  ```python
+  ##OpenCV的加法是饱和操作
+  
+  pic1=cv2.imread('hua512.png')
+  pic2=cv2.imread('pic512.png')
+  pic3=cv2.add(pic1,pic2)
+  cv2.imshow('pic1',pic1)
+  cv2.imshow('pic2',pic2)
+  cv2.imshow('pic3',pic3)
+  cv2.waitKey(0)
+  ```
+
+  | ![add_pic1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic1.png) | ![add_pic2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic2.png) | ![add_pic3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic3.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 图1                                                          | 图2                                                          | 颜色加法图                                                   |
+
+  ```python
+  #Numpy加法
+  
+  pic1=cv2.imread('hua512.png')
+  pic2=cv2.imread('pic512.png')
+  pic3=pic1+pic2
+  cv2.imshow('pic1',pic1)
+  cv2.imshow('pic2',pic2)
+  cv2.imshow('pic3',pic3)
+  cv2.waitKey(0)
+  ```
+
+  | ![add_pic1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic1.png) | ![add_pic2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic2.png) | ![add_num_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_num_pic.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 图1                                                          | 图2                                                          | numpy加法图                                                  |
+
+### 3.颜色加权法
+
+- 定义
+
+  这其实也是加法，但是不同的是两幅图像的权重不同，图像混合的计算公式如下：
+
+  `g(x) = (1−α)f0(x) + αf1(x)`
+
+  把两幅图混合在一起，第一幅图的权重是0.7，第二幅图的权重是0.3。函数cv2.addWeighted()可以按下面的公式对图片进行混合操作，γ可取为零。
+
+  `dst = α⋅img1 + β⋅img2 + γ`
+
+- 实例
+
+  ```python
+  pic1=cv2.imread('hua512.png')
+  pic2=cv2.imread('pic512.png')
+  pic3=cv2.addWeighted(pic1,0.5,pic2,0.5,0)
+  #pic1=0.5权重，pic2=0.5权重，γ=0
+  cv2.imshow('pic1',pic1)
+  cv2.imshow('pic2',pic2)
+  cv2.imshow('pic3',pic3)
+  cv2.waitKey(0)
+  ```
+
+  | ![add_pic1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic1.png) | ![add_pic2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic2.png) | ![add_weight_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_weight_pic.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 图1                                                          | 图2                                                          | 颜色加法权重                                                 |
+
+### 4.HSV颜色空间
+
+- 定义
+
+  ​		HSV颜色空间指的是HSV颜色模型，这是一种与RGB颜色模型并列的颜色空间表示法。RGB颜色模型使用红、绿、蓝三原色的强度来表示颜色，是一种加色法模型，即颜色的混合是添加三原色的强度。
+
+  ​		HSV颜色空间使用色调（Hue）、饱和度（Saturation）和亮度（Value）三个参数来表示颜色，色调H表示颜色的种类，如红色、绿色、蓝色等；饱和度表示颜色的纯度或强度，如红色越纯，饱和度就越高；亮度表示颜色的明暗程度，如黑色比白色亮度低。
+
+- 模型
+
+  ![HSV](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/HSV.png)
+
+- 说明
+
+  1.色调H：
+
+  使用角度度量，取值范围为0°\~360°，从红色开始按逆时针方向计算，红色为0°，绿色为120°，蓝色为240°。它们的补色是：黄色为60°，青色为180°，紫色为300°。通过改变H的值，可以选择不同的颜色
+
+  2.饱和度S：
+
+  饱和度S表示颜色接近光谱色的程度。一种颜色可以看成是某种光谱色与白色混合的结果。其中光谱色所占的比例越大，颜色接近光谱色的程度就越高，颜色的饱和度就越高。饱和度越高，颜色就越深而艳，光谱色的白光成分为0，饱和度达到最高。通常取值范围为0%\~100%，其中0%表示灰色或无色，100%表示纯色，通过调整饱和度的值，可以使颜色变得更加鲜艳或者更加灰暗。
+
+  3.明度V：
+
+  明度表示颜色明亮的程度，对于光源色，明度值与发光体的光亮度有关；对于物体色，此值和物体的透射比或反射比有关。通常取值范围为0%（黑）到100%（白），通过调整明度的值，可以使颜色变得更亮或者更暗。
+
+- 颜色区分范围
+
+  一般对颜色空间的图像进行有效处理都是在HSV空间进行的，然后对于基本色中对应的HSV分量需要给定一个严格的范围，下面是通过实验计算的模糊范围：
+
+  H: 0— 180
+
+  S: 0— 255
+
+  V: 0— 255
+
+  此处把部分红色归为紫色范围：
+
+  ![HSV_table](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/HSV_table.png)
+
+- 作用与意义
+
+  - 符合人类对颜色的感知方式：人类对颜色的感知是基于色调、饱和度和亮度三个维度的，而HSV颜色空间恰好就是通过这三个维度来描述颜色的。因此，使用HSV空间处理图像可以更直观地调整颜色和进行色彩平衡等操作，更符合人类的感知习惯。
+  - 颜色调整更加直观：在HSV颜色空间中，色调、饱和度和亮度的调整都是直观的，而在RGB颜色空间中调整颜色不那么直观。例如，在RGB空间中要调整红色系的颜色，需要同时调整R、G、B三个通道的数值，而在HSV空间中只需要调整色调和饱和度即可。
+  - 降维处理有利于计算：在图像处理中，降维处理可以减少计算的复杂性和计算量。HSV颜色空间相对于RGB颜色空间，减少了两个维度（红、绿、蓝），这有利于进行一些计算和处理任务，比如色彩分割、匹配等。
+
+### 5图像制作掩膜
+
+- 定义
+
+  掩膜（Mask）是一种在图像处理中常见的操作，它用于选择性地遮挡图像的某些部分，以实现特定任务的目标。**掩膜通常是一个二值化图像**，并且与原图像的大小相同，**其中目标区域被设置为1（或白色），而其他区域被设置为0（或黑色）**，并且目标区域可以根据HSV的颜色范围进行修改。
+
+- 图示
+
+  ![mask_show](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mask_show.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('pic.jpg')
+  pic_hsv=cv2.cvtColor(pic,cv2.COLOR_BGR2HSV)#BGR颜色空间转换为HSV颜色空间
+  green_low=np.array([35,43,46])#绿色空间HSV最低值
+  green_high=np.array([77,255,255])#绿色空间HSV最大值
+  
+  pic_hsv_mask=cv2.inRange(pic_hsv,green_low,green_high)
+   #cv2.inRange用于进行多通道图像（尤其是彩色图像）的阈值操作。它将图像中的每个像素值与指定的颜色范围进行比较，并根据比较结果生成一个二值图像（通常称为掩模或标记图像），其中白色像素代表原图中对应位置的像素颜色在设定范围内，而黑色像素则表示不在该范围内。
+      
+  cv2.imshow('origin',pic)
+  cv2.imshow('hsv_mask',pic_hsv_mask)
+  cv2.imshow('hsv',pic_hsv)
+  cv2.waitKey(0)
+  ```
+
+  | ![imshow_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/imshow_pic.png) | ![hsv_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/hsv_pic.png) | ![hsv_mask](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/hsv_mask.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 原图                                                         | HSV图                                                        | Mask图                                                       |
+
+### 6.图像与运算
+
+- 定义
+
+  在图像处理中，“与”运算被用来对图像的像素值进行操作。具体来说，就**是将两个图像中所有的对应像素值一一进行“与”运算，**从而得到新的图像。从上面的图片我们可以看出，**掩膜中有很多地方是黑色的，其像素值为0，那么在与原图像进行“与”运算的时候，得到的新图像的对应位置也是黑色的。**
+
+- 图示
+
+  ![and_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/and_pic.png)
+
+  通过掩膜与原图的与运算，我们就可以提取出图像中被掩膜覆盖的区域(扣图)。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('pic.jpg')
+  pic_hsv=cv2.cvtColor(pic,cv2.COLOR_BGR2HSV)#BGR颜色空间转换为HSV颜色空间
+  green_low=np.array([35,43,46])#绿色空间HSV最低值
+  green_high=np.array([77,255,255])#绿色空间HSV最大值
+  pic_hsv_mask=cv2.inRange(pic_hsv,green_low,green_high)#创建掩膜
+  
+  pic_and=cv2.bitwise_and(pic,pic,mask=pic_hsv_mask)
+    # 输出图像中的每个像素值将是输入的两个图像对应像素值进行位与操作的结果。但当提供了第三个参数 mask存在时，该掩模图像会决定哪些位置上的像素进行实际的位与计算。掩模图像通常是一个单通道图像，其中非零（例如白色或高值）像素表示在位与操作中要保留的位置。
+    # 注意 参数一pic和参数二pic的每一位像素进行按位与操作，由于是同一张图片，因此相同像素按位与后还是当前像素
+    #相同的数值“与”运算后还是这个数值不变
+  cv2.imshow('pic_and',pic_and)
+  cv2.imshow('origin',pic)
+  cv2.imshow('hsv_mask',pic_hsv_mask)
+  cv2.imshow('hsv',pic_hsv)
+  cv2.waitKey(0)
+  ```
+
+  | ![imshow_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/imshow_pic.png) | ![hsv_mask](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/hsv_mask.png) | ![mask_and](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mask_and.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 原图                                                         | 掩膜                                                         | 与运算图                                                     |
+
+## 图像颜色替换
+
+### 1.图像制作掩膜
+
+![mask_show](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mask_show.png)
+
+**通过这个掩膜，我们就可以对掩膜中的白色区域所对应的原图中的区域（也就是原图中的红色区域）进行像素值的修改，从而完成颜色替换的功能。**
+
+### 2.颜色替换
+
+- 定义
+
+  由于掩膜与原图的大小相同，并且像素位置一一对应，那么我们就可以得到掩膜中白色（也就是像素值为255）区域的坐标，并将其带入到原图像中，即可得到原图中的红色区域的坐标，然后就可以修改像素值了，这样就完成了颜色的替换。
+
+- 图示
+
+  ![replace](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/replace.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('pic.jpg')
+  pic_hsv=cv2.cvtColor(pic,cv2.COLOR_BGR2HSV)#BGR颜色空间转换为HSV颜色空间
+  green_low=np.array([35,43,46])#绿色空间HSV最低值
+  green_high=np.array([77,255,255])#绿色空间HSV最大值
+  
+  pic_hsv_mask=cv2.inRange(pic_hsv,green_low,green_high)
+  
+  pic[pic_hsv_mask>0]=(0,0,255)#布尔索引获取掩膜中大于0的像素点的坐标，并替换颜色
+  cv2.imshow('replce_pic',pic)
+  cv2.imshow('hsv_mask',pic_hsv_mask)
+  cv2.imshow('hsv',pic_hsv)
+  cv2.waitKey(0)
+  ```
+
+  | ![imshow_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/imshow_pic.png) | ![hsv_mask](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/hsv_mask.png) | ![replace_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/replace_pic.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 原图                                                         | 掩膜                                                         | 颜色替换                                                     |
+
+## 图像ROI切割
+
+- 定义
+
+  ROI：Region of Interest，翻译过来就是感兴趣的区域。比如对于一个人的照片，假如我们要检测眼睛，因为眼睛肯定在脸上，所以我们感兴趣的只有脸这部分，其他都不care，所以可以单独把脸截取出来，这样就可以大大节省计算量，提高运行速度。
+
+- 操作
+
+  我们在使用OpenCV进行读取图像时，图像数据会被存储为Numpy数组，这也意味着我们可以使用Numpy数组的一些操作来对图像数据进行处理，比如切片。
+
+- 说明
+
+  在OpenCV中，坐标的x轴的正方向是水平向右，y轴的正方向是垂直向下，与数学上的二维坐标并不相同。
+
+  在计算机视觉中，当我们使用OpenCV读取RGB三通道图像时，它会被转换成一个三维的Numpy数组。这个数组里的每个元素值都表示图像的一个像素值。这个三维数组的第一个维度（即轴0）通常代表图像的高度，第二个维度（即轴1）代表图像的宽度，而第三个维度（即轴2）代表图像的三个颜色通道（B、G、R，）OpenCV读取到的图像以BGR的方式存储所对应的像素值。
+
+- 实例
+
+  ```python
+  #用矩形提取兴趣区域
+  pic=cv2.imread('pic.jpg')
+  
+  x_min,x_max=100,200
+  y_min,y_max=300,500
+  
+  pic_rect=cv2.rectangle(pic,(x_min-1,y_min-1),(x_max+1,y_max+1),(255,0,0),1)
+  
+  pic_get=pic[y_min:y_max,x_min:x_max]
+  
+  cv2.imshow('origin',pic)
+  cv2.imshow('pic_get',pic_get)
+  cv2.waitKey(0)
+  ```
+
+  | ![ROI](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ROI.png) | ![ROI_get](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ROI_get.png) |
+  | ------------------------------------------------------ | ------------------------------------------------------------ |
+  | 原图                                                   | 截取图                                                       |

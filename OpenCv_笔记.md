@@ -1204,3 +1204,821 @@ cv2.waitKey(0)
   | ![ROI](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ROI.png) | ![ROI_get](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ROI_get.png) |
   | ------------------------------------------------------ | ------------------------------------------------------------ |
   | 原图                                                   | 截取图                                                       |
+
+## 图像旋转
+
+图像旋转是指图像以某一点为旋转中心，将图像中的所有像素点都围绕该点旋转一定的角度，并且旋转后的像素点组成的图像与原图像相同。
+
+### 1.单点旋转
+
+​	以最简单的一个点的旋转为例子，且以最简单的情况举例，令旋转中心为坐标系中心O(0，0)，假设有一点P0(x0,y0)，P0离旋转中心O的距离为r，OP与坐标轴x轴的夹角为α，P0绕O顺时针旋转Θ角后对应的点为P(x,y):
+
+![one_point](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/one_point.png)
+
+那么我们可以得到如下关系：
+
+
+$$
+y_{0}=r\times\sin\alpha
+$$
+
+$$
+x_{0}=r\times\cos\alpha
+$$
+
+
+$$
+x=r\times\cos(\alpha-\theta)=r\cos\alpha\cos\theta+r\sin\alpha\sin\theta=x_{0}\cos\theta+y_{0}\sin\theta
+$$
+
+$$
+y=r\times\sin(\alpha-\theta)=r\sin\alpha\cos\theta-r\cos\alpha\sin\theta=-x_{0}\sin\theta+y_{0}\cos\theta
+$$
+
+用矩阵来表示就是
+$$
+\left[\begin{array}{l  l}{{x}}\\{{y}}\end{array}\right]=\left[\begin{array}{l  l}{{\cos\theta~~~~\sin\theta}}\\{{-\sin\theta~~~~\cos\theta}}\\\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\end{array}\right]
+$$
+
+然而，**在OpenCV中，旋转时是以图像的左上角为旋转中心，且以逆时针为正方向，因此上面的例子中其实是个负值，**那么该矩阵可写为：
+$$
+\left[\begin{array}{l  l}{{x}}\\{{y}}\end{array}\right]=\left[\begin{array}{l  l}{{\cos\theta~~~~-\sin\theta}}\\{{\sin\theta~~~~\cos\theta}}\\
+\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\end{array}\right]
+$$
+其中，
+$$
+\left[\begin{array}{l  l}{{\cos\theta~~~~-\sin\theta}}\\{{\sin\theta~~~~\cos\theta}}\\
+\end{array}\right]
+$$
+也被称作旋转矩阵。然而我们所要的不仅仅是可以围绕图像左上角进行旋转，而是可以围绕任意点进行旋转。那么我们可以将其转化成绕原点的旋转，其过程为：
+
+1. **首先将旋转点移到原点**
+2. **按照上面的旋转矩阵进行旋转得到新的坐标点**
+3. **再将得到的旋转点移回原来的位置**
+
+也就是说，在以任意点为旋转中心时，除了要进行旋转之外，还要进行平移操作。那么当点经过平移后得到P点时，如下图所示：
+
+![random_point](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/random_point.png)
+
+那么我们就可以得到：
+$$
+x=x_{0}+t_{x}
+$$
+
+$$
+y=y_{0}+t_{y}
+$$
+
+写成矩阵的形式为：
+$$
+\left[\begin{array}{l  l  l}{{x}}\\{{y}}\\{1}\end{array}\right]=\left[\begin{array}{c}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
+\end{array}\right]*\left[\begin{array}{c}{{x_0}}\\{{y_0}}\\{1}\end{array}\right]
+$$
+于是
+$$
+\left[\begin{array}{l  l  l}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
+\end{array}\right]
+$$
+也被叫做平移矩阵，相反的，从P移到点时，其平移矩阵为：
+$$
+\left[\begin{array}{l l l}{1}&{0}&{-\,t_{x}}\\ {0}&{1}&{-\,t_{y}}\\ {0}&{0}&{1}\end{array}\right]
+$$
+我们将原始的旋转矩阵也扩展到3\*3的形式：
+$$
+\begin{array}{l l l}{{\left[\begin{array}{c}{{x}}\\{{y}}\\{1} \end{array}\right]=\left[\begin{array}{c c c}{{\cos\theta}}&{{-\sin\theta}}&{{0}}\\ {{\sin\theta}}&{{\cos\theta}}&{{0}}\\ {{0}}&{{0}}&{{1}}\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\\{{1}}\end{array}\right]}}\end{array}
+$$
+从平移和旋转的矩阵可以看出，3x3矩阵的前2x2部分是和旋转相关的，第三列与平移相关。有了上面的表达式之后，我们就可以得到二维空间中绕任意点旋转的旋转矩阵了，只需要将旋转矩阵先左乘
+$$
+\left[\begin{array}{l  l  l}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
+\end{array}\right]
+$$
+，再右乘
+$$
+\left[\begin{array}{l l l}{1}&{0}&{-\,t_{x}}\\ {0}&{1}&{-\,t_{y}}\\ {0}&{0}&{1}\end{array}\right]
+$$
+即可得到最终的矩阵，其结果为：
+$$
+M=\left[\begin{array}{l  l  l}{{\cos\theta~~-\sin\theta~~(1-\cos\theta)t_{x}+t_{y}*\sin\theta}}\\{{\sin\theta~~~\cos\theta~~~~~(1-\cos\theta)t_{y}+t_{x}*\sin\theta}}\\{{0~~~~~~~~~~~~~0~~~~~~~~~~~~~1}}
+\end{array}\right]
+$$
+于是我们就可以根据这个矩阵计算出图像中任意一点绕某点旋转后的坐标了，这个矩阵学名叫做**仿射变换矩阵**，而仿射变换是一种二维坐标到二维坐标之间的线性变换，也就是只涉及一个平面内二维图形的线性变换，图像旋转就是仿射变换的一种。它保持了二维图形的两种性质：
+
+1. **平直性：直线经过变换后依然是直线。**
+2. **平行性：平行线经过变换后依然是平行线。**
+
+### 2.图片旋转
+
+- 定义
+
+  将图像里的每个像素点都带入仿射变换矩阵里，从而得到旋转后的新坐标
+
+  在OpenCV中，要得到仿射变换矩阵可以使用cv2.getRotationMatrix2D()，通过这个函数即可直接获取到上面的旋转矩阵。
+
+- 语法
+
+  ```python
+  cv2.getRotationMatrix2D(Center,Angle,Scale)
+  ```
+
+- 参数
+
+  - Center：表示旋转的中心点，是一个二维的坐标点(x,y)
+  - Angle：表示旋转的角度
+  - Scale：表示缩放比例，可以通过该参数调整图像相对于原始图像的大小变化
+
+- 操作说明
+
+  ​		由于三角函数的值是小数，那么其乘积也会是小数，虽然OpenCV中会对其进行取整操作，但是像素点旋转之后的取整结果也有可能重合，这样就会导致可能会在旋转的过程中丢失一部分原始的像素信息。并且如果使用了scale参数进行图像的缩放的话，**当图像放大时，比如一个10\*10的图像放大成20\*20，图像由100个像素点变成400个像素点，多余的300个像素点是怎么来的？当图像缩小时，比如一个20\*20的图像缩小为10\*10的图像，需要丢掉300个像素点，如何保持图像正确？**为了保证图像的完整性，这种方法就叫做**插值法**。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('hua512.png')
+  
+  height,width,_=pic.shape
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=1)
+  #取得对应点的旋转矩阵(旋转中心点,旋转角度,缩放比例)
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height))
+  #根据旋转矩阵，进行旋转图片
+  """
+  cv2.warpAffine(pic,M,
+  (img_shape[0],img_shape[1]),flags=cv2.INTER_LANCZOS4,borderMode=cv2.BORDER_REFLECT_101)
+  
+  """
+  cv2.imshow('hua',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  
+  cv2.waitKey(0)
+  ```
+
+| ![add_pic1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic1.png) | ![rotation_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/rotation_pic.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 原图                                                         | 旋转图                                                       |
+
+### 3.插值方法
+
+​		图像处理中常用于处理图像的放大、缩小、旋转、变形等操作，以及处理图像中的像素值。
+
+​		图像插值算法是为了解决图像缩放或者旋转等操作时，由于像素之间的间隔不一致而导致的信息丢失和图像质量下降的问题。当我们对图像进行缩放或旋转等操作时，需要在新的像素位置上计算出对应的像素值，而插值算法的作用就是根据已知的像素值来推测未知位置的像素值。
+
+#### 3.1最近邻插值
+
+- 语法
+
+  ```python
+  CV2.INTER_NEAREST
+  ```
+
+- 公式
+
+
+  $$
+  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
+  $$
+
+  $$
+  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
+  $$
+
+  **dstX**表示目标图像中某点的x坐标，**srcWidth**表示原图的宽度，dstWidth表示目标图像的宽度；**dstY**表示目标图像中某点的y坐标，**srcHeight**表示原图的高度，**dstHeight**表示目标图像的高度。而**srcX**和**srcY**则表示目标图像中的某点对应的原图中的点的x和y的坐标。
+
+- 图示
+
+  比如一个2\*2的图像放大到4\*4，如下图所示，其中红色的为每个像素点的坐标，黑色的则表示该像素点的像素值。
+
+  ![near_show](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/near_show.png)
+
+  根据公式我们就可以计算出放大后的图像（0，0）点对应的原图像中的坐标为：
+  $$
+  s r c x=0*({\frac{2}{4}})=0
+  $$
+
+  $$
+  s r c y=0*({\frac{2}{4}})=0
+  $$
+
+  也就是原图中的（0，0）点，而最近邻插值的原则是：目标像素点的像素值与经过该公式计算出来的对应的像素点的像素值相同，**如出现小数部分需要进行取整(向下取整)**。那么放大后图像的（0，0）坐标处的像素值就是原图像中（0，0）坐标处的像素值，也就是10。
+
+  接下来就是计算放大后图像（1，0）点对应的原图像的坐标，还是带入公式：
+  $$
+  s r c y=1*({\frac{2}{4}})=0.5
+  $$
+
+  $$
+  s r c y=0*({\frac{2}{4}})=0
+  $$
+
+  也就是原图中的（0.5，0）点，因此需要对计算出来的坐标值进行取整，取整后的结果为（0，0），也就是说放大后的图像中的（1，0）坐标处对应的像素值就是原图中（0，0）坐标处的像素值，其他像素点计算规则与此相同。
+
+#### 3.2双线性插值
+
+- 语法
+
+  ```python
+  CV2.INTER_LINEAR
+  ```
+
+- 原理
+
+  对图像进行变换时，特别是尺寸变化时，原始图像的某些像素坐标可能不再是新图像中的**整数位置**，这时就需要使用插值算法来确定这些非整数坐标的像素值。
+
+  1. 假设要查找目标图像上坐标为 `(x', y')` 的像素值，在原图像上对应的浮点坐标为 `(x, y)`。
+
+  2. 在原图像上找到四个最接近`(x, y)`的像素点，通常记作 `P00(x0, y0)`, `P01(x0, y1)`, `P10(x1, y0)`, `P11(x1, y1)`，它们构成一个2x2的邻域矩阵。
+
+  3. 分别在**水平方向和垂直方向上做线性插值**：
+
+     - 水平方向：根据 `x` 与 `x0` 和 `x1` 的关系计算出 `P00` 和 `P10` 之间的插值结果。
+     - 垂直方向：将第一步的结果与 `y` 与 `y0` 和 `y1` 的关系结合，再在 `P00-P01` 和 `P10-P11` 对之间做一次线性插值。
+
+  4. 综合上述两次线性插值的结果，得到最终位于 `(x', y')` 处的新像素的估计值。
+
+- 公式
+
+  假如已知两个点(X0,Y0)和(x1,y1)，我们要计算[x0,y0]区间内某一位置x在直线上的y值，那么计算过程为：
+  $$
+  {\frac{y-y_{0}}{x-x_{0}}}={\frac{y_{1}-y_{0}}{x_{1}-x_{0}}}
+  $$
+
+  $$
+  y={\frac{x_{1}-x}{x_{1}-x_{0}}}y_{0}+{\frac{x-x_{0}}{x_{1}-x_{0}}}y_{1}
+  $$
+
+  仔细看公式，其实就是计算距离，并将距离作为一个权重用于y0和y1的加权求和。这就是线性插值，而双线性插值本质上就是在两个方向上做线性插值。
+
+  还是给出目标点与原图像中点的计算公式：
+  $$
+  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
+  $$
+
+  $$
+  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
+  $$
+
+- 图示
+
+  根据上述公式计算出了新图像中的某点所对应的原图像的点P，其周围的点分别为Q12、Q22、Q11、Q21， 要插值的P点不在其周围点的连线上，这时候就需要用到双线性插值了。首先延申P点得到P和Q11、Q21的交点R1与P和Q12、Q22的交点R2，如下图所示：
+
+  ![liner_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/liner_pic.png)
+
+  然后根据Q11、Q21得到R1的插值，根据Q12、Q22得到R2的插值，然后根据R1、R2得到P的插值即可，这就是双线性插值。
+
+  首先计算R1和R2的插值：
+  $$
+  f(R_{1})\approx\frac{x_{2}-x}{x_{2}-x_{1}}f(Q_{11})+\frac{x-x_{1}}{x_{2}-x_{1}}f(Q_{21})
+  $$
+
+  $$
+  f(R_{2})\approx\frac{x_{2}-x}{x_{2}-x_{1}}f(Q_{12})+\frac{x-x_{1}}{x_{2}-x_{1}}f(Q_{22})
+  $$
+
+  然后根据R1和R2计算P的插值：
+  $$
+  f(P)\approx{\frac{y_{2}-y}{y_{2}-y_{1}}}f(R_{1})+{\frac{y-y_{1}}{y_{2}-y_{1}}}f(R_{2})
+  $$
+  这样就得到了P点的插值。注意此处如果先在y方向插值、再在x方向插值，其结果与按照上述顺序双线性插值的结果是一样的。
+
+- 出现的问题
+
+  1.根据坐标系的不同，产生的结果不同，这张图是左上角为坐标系原点的情况，我们可以发现最左边x=0的点都会有概率直接复制到目标图像中（至少原点肯定是这样），而且就算不和原图像中的点重合，也相当于进行了1次单线性插值.
+
+  而且无论我们采用什么坐标系，最左侧和最右侧（最上侧和最下侧）的点是“不公平的”。
+
+  2.整体的图像相对位置会发生变化。左侧是原图像(3，3)，右侧是目标图像(5，5)，原图像的几何中心点是(1,1)，目标图像的几何中心点是(2,2)，根据对应关系，目标图像的几何中心点对应的原图像的位置是(1.2,1.2)，那么问题来了，目标图像的原点(0,0)和原始图像的原点是重合的，但是目标图像的几何中心点相对于原始图像的几何中心点偏右下，那么整体图像的位置会发生偏移。
+
+  ![problem](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/problem.png)
+
+- 改进公式
+
+
+  $$
+  s r c X=(d s t X+0.5)*{\frac{s r c W i d t h}{d s t W i d t h}}-0.5
+  $$
+
+  $$
+  s r c Y=(d s t Y+0.5)\ast{\frac{s r c H e i g h t}{d s t H e i g h t}}-0.5
+  $$
+
+#### 3.3像素区域插值
+
+- 语法
+
+  ```python
+  cv2.INTER_AREA
+  ```
+
+- 原理
+
+  像素区域插值主要分两种情况:缩小图像和放大图像
+
+  缩小图像时：像素区域插值方法，它就会变成一个**均值滤波器**，对一个区域内的像素值取平均值。
+
+  放大图像时：如果图像放大的比例**是整数倍**，那么其工作原理与**最近邻插值类似**；如果放大的比例**不是整数倍**，那么就会调用双线性插值进行放大。
+
+- 公式
+
+
+  $$
+  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
+  $$
+
+  $$
+  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
+  $$
+
+#### 3.4双三次插值
+
+- 语法
+
+  ```python
+  cv2.INTER_CUBIC
+  ```
+
+- 原理
+
+  与双线性插值法相同，该方法也是通过映射，在映射点的邻域内通过加权来得到放大图像中的像素值。不同的是，双三次插值法需要原图像中**近邻的16个点来加权**。
+
+- 公式
+
+  目标像素点与原图像的像素点的对应公式如下所示：
+  $$
+  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
+  $$
+
+  $$
+  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
+  $$
+
+- 说明
+
+  假设原图像A大小为m\*n，缩放后的目标图像B的大小为M\*N。其中A的每一个像素点是已知的，B是未知的，我们想要求出目标图像B中每一个像素点（X,Y）的值，必须先找出像素（X,Y）在原图像A中对应的像素（x,y），再根据原图像A距离像素（x,y）最近的16个像素点作为计算目标图像B（X,Y）处像素值的参数，利用**BiCubic基函数**求出16个像素点的权重，图B像素（x,y）的值就等于16个像素点的加权叠加。
+
+  下图中的P点就是目标图像B在（X,Y）处根据上述公式计算出的对应于原图像A中的位置，P的坐标位置会出现小数部分，所以我们假设P点的坐标为（x+u,y+v），其中x、y表示整数部分，u、v表示小数部分，那么我们就可以得到其周围的最近的16个像素的位置，我们用a（i，j）（i，j=0,1,2,3）来表示。
+
+  ![cubi_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cubi_pic.png)
+
+  BiCubic函数：
+  ![aaaa](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/aaaa.png)
+
+  其中，**a一般取-0.5或-0.75。**
+
+  我们要做的就是将上面的16个点的坐标带入函数中，获取16像素所对应的权重W(x)。然而BiCubic函数是一维的，所以我们需要将像素点的行与列分开计算，比如a00这个点，我们需要将x=0带入BiCubic函数中，计算a00点对于P点的x方向的权重，然后将y=0带入BiCubic函数中，计算a00点对于P点的y方向的权重，其他像素点也是这样的计算过程，最终我们就可以得到P所对应的目标图像B在（X,Y）处的像素值为：
+  $$
+  B(X,Y)=\sum_{i=0}^{3}\sum_{j=0}^{3}a_{i j}\times W_{(i)}\times W_{(j)}
+  $$
+
+#### 3.5Lanczos插值
+
+- 语法
+
+  ```
+  cv2.INTER_LANCZOS4
+  ```
+
+- 原理
+
+  Lanczos插值方法与双三次插值的思想是一样的，不同的就是其需要的原图像周围的像素点的范围变成了8\*8，并且不再使用BiCubic函数来计算权重，而是换了一个公式计算权重。
+
+- 公式
+
+  目标像素点与原图像的像素点的对应公式如下所示：
+  $$
+  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
+  $$
+
+  $$
+  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
+  $$
+
+- 说明
+
+  假设原图像A大小为m\*n，缩放后的目标图像B的大小为M\*N。其中A的每一个像素点是已知的，B是未知的，我们想要求出目标图像B中每一个像素点（X,Y）的值，必须先找出像素（X,Y）在原图像A中对应的像素（x,y），再根据原图像A距离像素（x,y）最近的64个像素点作为计算目标图像B（X,Y）处像素值的参数，利用权重函数求出64个像素点的权重，图B像素（x,y）的值就等于64个像素点的加权叠加。
+
+  假如下图中的P点就是目标图像B在（X,Y）处根据上述公式计算出的对应于原图像A中的位置，P的坐标位置会出现小数部分，所以我们假设P点的坐标为（x+u,y+v），其中x、y表示整数部分，u、v表示小数部分，那么我们就可以得到其周围的最近的64个像素的位置，我们用a（i，j）（i，j=0,1,2,3,4,5,6,7）来表示。
+
+  ![Lan_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/Lan_pic.png)
+
+  权重公式：
+
+![bbb](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/bbb.png)
+
+**其中a通常取2或者3，当a=2时，该算法适用于图像缩小。a=3时，该算法适用于图像放大。**
+
+与双三次插值一样，这里也需要将像素点分行和列分别带入计算权重值，其他像素点也是这样的计算过程，最终我们就可以得到P所对应的目标图像B在（X,Y）处的像素值为：
+$$
+S(x,y)=\sum_{i=[x]-a+1}^{[x]+a}\sum_{j=[y]-a+1}^{[y]+a}s_{i j}L(x-i)L(y-j)
+$$
+
+#### 3.7插值方法小结
+
+最近邻插值的计算**速度最快**，但是可能会导致图像出现锯齿状边缘和失真，效果较差。双线性插值的计算速度慢一点，但效果有了大幅度的提高，适用于大多数场景。双三次插值、Lanczos插值的计算速度都很慢，但是效果都很好。
+
+**在OpenCV中，关于插值方法默认选择的都是双线性插值**
+
+### 4.边缘填充
+
+左图在逆时针旋转45度之后原图的四个顶点在右图中已经看不到了，右图的四个顶点区域其实是什么都没有的，因此我们需要对空出来的区域进行一个填充。右图就是对空出来的区域进行了像素值为（0，0，0）的填充，也就是黑色像素值的填充。
+
+| ![add_pic1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/add_pic1.png) | ![rotation_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/rotation_pic.png) |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| 原图                                                        | 旋转图                                                       |
+
+#### 4.1边界复制（BORDER_REPLICATE）
+
+- 定义
+
+  边界复制会将边界处的像素值进行复制，然后作为边界填充的像素值
+
+- 图示
+
+  ![replicate](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/replicate.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  height,width,_=pic.shape
+  
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=1)#取得对应旋转点的旋转矩阵
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height),flags=cv2.INTER_NEAREST,borderMode=cv2.BORDER_REPLICATE)#根据旋转矩阵，进行旋转图片，插值为最近邻方法,填充为边界复制
+  cv2.imshow('cat',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rote](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rote.png) | ![cat_replacte](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_replacte.png) |
+  | --------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                | 旋转图                                                      | 填充图                                                       |
+
+#### 4.2边界反射（BORDER_REFLECT）
+
+- 图示
+
+  ![reflect](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/reflect.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  height,width,_=pic.shape
+  
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=0.5)#取得对应旋转点的旋转矩阵
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height),flags=cv2.INTER_NEAREST,borderMode=cv2.BORDER_REFLECT)#根据旋转矩阵，进行旋转图片,插值为最近邻方法，填充为边界反射
+  cv2.imshow('cat',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rote](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rote.png) | ![cat_reflect](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_reflect.png) |
+  | --------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                | 旋转图                                                      | 边界反射                                                     |
+
+#### 4.3边界反射_101（BORDER_REFLECT_101）
+
+与边界反射不同的是，不再反射边缘的像素点
+
+- 图示
+
+  ![101](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/101.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  height,width,_=pic.shape
+  
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=0.5)#取得对应旋转点的旋转矩阵
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height),flags=cv2.INTER_NEAREST,borderMode=cv2.BORDER_REFLECT101)#根据旋转矩阵，进行旋转图片,插值为最近邻方法,填充为边界反射101
+  cv2.imshow('cat',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rote](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rote.png) | ![cat_101](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_101.png) |
+  | --------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
+  | 原图                                                | 旋转图                                                      | 边界反射101                                               |
+
+#### 4.4边界常数（BORDER_CONSTANT）
+
+当选择边界常数时，还要指定常数值是多少，默认的填充常数值为0
+
+- 图示
+
+  ![constant](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/constant.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  height,width,_=pic.shape
+  
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=0.5)#取得对应旋转点的旋转矩阵
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height),flags=cv2.INTER_NEAREST,borderMode=cv2.BORDER_CONSTANT,borderValue=(255,0,0))#根据旋转矩阵，进行旋转图片插值,为最近邻方法,填充为边界常数，数值为蓝色
+  cv2.imshow('cat',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rote](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rote.png) | ![cat_constant](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_constant.png) |
+  | --------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                | 旋转图                                                      | 边界常熟                                                     |
+
+#### 4.5边界包裹（BORDER_WRAP）
+
+- 图示
+
+  ![wrap](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/wrap.png)
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  height,width,_=pic.shape
+  
+  M=cv2.getRotationMatrix2D((height//2,width//2),angle=45,scale=0.5)#取得对应旋转点的旋转矩阵
+  
+  rotation_pic=cv2.warpAffine(pic,M,dsize=(width,height),flags=cv2.INTER_NEAREST,borderMode=cv2.BORDER_WRAP)#根据旋转矩阵，进行旋转图片,插值为最近邻方法,填充为边界包裹
+  cv2.imshow('cat',pic)
+  cv2.imshow('rotation_pic',rotation_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rote](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rote.png) | ![cat_wrap](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_wrap.png) |
+  | --------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+  | 原图                                                | 旋转图                                                      | 边界包裹                                                    |
+
+## 图片镜像旋转
+
+- 定义
+
+  图像的旋转是围绕一个特定点进行的，而图像的镜像旋转则是围绕坐标轴进行的。图像的镜像旋转分为水平翻转、垂直翻转、水平垂直翻转三种。
+
+  水平翻转就是将图片的像素点沿y轴翻转，具体到像素点来说就是令其坐标从（x,y）翻转为（-x,y）。
+
+  垂直翻转就是将图片的像素点沿x轴翻转，具体到像素点来说就是其坐标从（x,y）翻转为（x,-y）
+
+  水平垂直翻转就是水平翻转和垂直翻转的结合，具体到像素点来说就是其坐标从（x,y）翻转为（-x,-y）。
+
+- 语法
+
+  ```
+  cv2.flip(image, flipCode)
+  ```
+
+- 公式
+
+  ![aaa](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/aaa.png)
+
+- 说明
+
+  图像在旋转的时候需要有旋转中心，而图像的镜像旋转虽然都是围绕x轴和y轴进行旋转，但是我们**也需要确定x轴和y轴的坐标**。在OpenCV中，**图片的镜像旋转是以图像的中心为原点进行镜像翻转的**。也就是说，**水平翻转时，图像的左侧和右侧会关于中心点进行交换，垂直翻转时，图像的上侧和下侧会关于中心点进行交换。**
+
+  - 0：垂直翻转
+  - 大于0：水平翻转
+  - 小于0：水平垂直翻转
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  
+  mirror_pic_vis=cv2.flip(pic,0)
+  mirror_pic_flat=cv2.flip(pic,1)
+  mirror_pic_vis_flat=cv2.flip(pic,-1)
+  
+  cv2.imshow('mirror_pic_vis',mirror_pic_vis)
+  cv2.imshow('mirror_pic_flat',mirror_pic_flat)
+  cv2.imshow('mirror_pic_vis_flat',mirror_pic_vis_flat)
+  
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_vis](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_vis.png) | ![cat_flat](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_flat.png) | ![cat_flat_via](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_flat_via.png) |
+  | --------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                | 垂直翻转                                                  | 水平翻转                                                    | 垂直水平翻转                                                 |
+
+## 图像缩放
+
+- 语法
+
+  ```python
+  cv2.resize(image_np, dsize=None, fx=0.6, fy=0.6, interpolation=cv2.INTER_LINEAR)
+  ```
+
+- 参数
+
+  1. **image_np**:
+     - 这是待缩放的原始图像，它是一个numpy数组表示的图像。
+  2. **dsize**:
+     - 这个参数代表目标图像的尺寸（宽度和高度），在这里设置为 `None` 意味着我们不直接指定新图像的具体尺寸，而是通过接下来的 `fx` 和 `fy` 参数来按比例缩放原图像。**若设置了dsize，则fx，fy失效**。
+  3. **fx**:
+     - 这是一个缩放因子，用来控制图像水平方向（宽度）的缩放比例。如果 `fx=0.6`，那么原图像的宽度将缩小到原来宽度的60%。
+  4. **fy**:
+     - 同样是一个缩放因子，但它控制的是图像垂直方向（高度）的缩放比例。当 `fy=0.6` 时，原图像的高度将缩小到原来高度的60%。
+  5. **interpolation**:
+     - 插值方法，用于决定如何计算新尺寸图像中的像素值。`cv2.INTER_LINEAR` 表示双线性插值，这是一种常用的、平滑且质量相对较高的插值方式，能够较好地保留图像细节和连续性。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('cat1.jpg')
+  pic_rsize=cv2.resize(pic,dsize=None,fx=0.7,fy=0.3,interpolation=cv2.INTER_LANCZOS4)
+  cv2.imshow('rsize',pic_rsize)
+  cv2.waitKey(0)
+  ```
+
+  | ![cat1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat1.png) | ![cat_rsize](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/cat_rsize.png) |
+  | --------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                | 缩放图                                                       |
+
+## 图片矫正
+
+- 矫正原理
+
+  仿射变换：
+
+  ​		是把一个二维坐标系转换到另一个二维坐标系的过程，转换过程坐标点的相对位置和属性不发生变换，是一个线性变换，该过程只发生旋转和平移过程。因此，一个平行四边形经过仿射变换后还是一个平行四边形。
+
+  ![ping](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ping.png)
+
+  透视变换：
+
+  ​		是**把一个图像投影到一个新的视平面的过程**，在现实世界中，我们观察到的物体在视觉上会受到透视效果的影响，即远处的物体看起来会比近处的物体小。透视投影是指将三维空间中的物体投影到二维平面上的过程，这个过程会导致物体在图像中出现形变和透视畸变。透视变换可以通过数学模型来校正这种透视畸变，使得图像中的物体看起来更符合我们的直观感受。
+
+  ​		图1在经过透视变换后得到了图2的结果，带入上面的话就是图像中的车道线（目标物体）的被观察视角从平视视角变成了俯视视角，这就是透视变换的作用。
+
+  ![per_1 (1)](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/per_1.png)
+
+  ![per_1 (2)](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/per_2.png)
+
+- 数学关系
+
+  透视变换矩阵：
+
+  
+  $$
+  \begin{array}{l l l}{{\left[\begin{array}{c}{{X}}\\{{Y}}\\{Z} \end{array}\right]=\left[\begin{array}{c c c}{{a_{11}}}&{{a_{12}}}&{{a_{13}}}\\ {{a_{21}}}&{{a_{22}}}&{{a_{23}}}\\ {{a_{31}}}&{{a_{32}}}&{{a_{33}}}\end{array}\right]*\left[\begin{array}{c}{{x}}\\{{y}}\\{{1}}\end{array}\right]}}\end{array}
+  $$
+  即
+  $$
+  X=a_{11}\cdot x+a_{12}\cdot y+a_{13}
+  $$
+
+  $$
+  Y=a_{21}\cdot x+a_{22}\cdot y+a_{23}
+  $$
+
+  $$
+  Z=a_{31}\cdot x+a_{32}\cdot y+a_{33}
+  $$
+
+  由此可得新的坐标的表达式为：
+  $$
+  x^{\prime}={\frac{X}{Z}}={\frac{a_{11}\cdot x+a_{12}\cdot y+a_{13}}{a_{31}\cdot x+a_{32}\cdot y+a_{33}}}
+  $$
+
+  $$
+  y^{\prime}={\frac{Y}{Z}}={\frac{a_{21}\cdot x+a_{22}\cdot y+a_{23}}{a_{31}\cdot x+a_{32}\cdot y+a_{33}}}
+  $$
+
+  其中x、y是原始图像点的坐标，x‘、y’是变换后的坐标，a11，a12，…,a33则是一些旋转量和平移量，由于透视变换矩阵的推导涉及三维的转换，所以这里不具体研究该矩阵，只要会使用就行。
+
+- 语法函数
+
+  ```python
+  getPerspectiveTransform(src,dst)
+  ```
+
+  src：原图像上需要进行透视变化的四个点的坐标，这四个点用于定义一个原图中的四边形区域。
+
+  dst：透视变换后，src的四个点在新目标图像的四个新坐标。
+
+  该函数会返回一个透视变换矩阵。
+
+  ```python
+  cv2.warpPerspective(src, M, dsize, flags, borderMode)
+  ```
+
+  src：输入图像。
+
+  M：透视变换矩阵。这个矩阵可以通过getPerspectiveTransform函数计算得到。
+
+  dsize：输出图像的大小。它可以是一个Size对象，也可以是一个二元组。
+
+  flags：插值方法的标记。
+
+  borderMode：边界填充的模式。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('card.png')
+  print(pic.shape)
+  height,width,_=pic.shape
+  print(height,width)
+  pic1_loc=np.float32([[223,149],[440,269],[102,242],[319,380]])
+  pic2_loc=np.float32([[0,0],[width,0],[0,height],[width,height]])
+  print(pic1_loc.shape,pic2_loc.shape)
+  M=cv2.getPerspectiveTransform(pic1_loc,pic2_loc)
+  
+  pic_per=cv2.warpPerspective(pic,M,dsize=(width,height),flags=cv2.INTER_LANCZOS4,borderMode=cv2.BORDER_REFLECT)
+  
+  cv2.imshow('card',pic)
+  cv2.imshow('card_per',pic_per)
+  cv2.waitKey(0)
+  ```
+
+  | ![card](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/card.png) | ![per_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/per_pic.png) |
+  | --------------------------------------------------- | --------------------------------------------------------- |
+  | 原图                                                | 矫正图                                                    |
+
+## 图像添加水印
+
+- 定义
+
+  将一张图片中的某个物体或者图案提取出来，然后叠加到另一张图片上。
+
+- 原理
+
+  通过将原始图片转换成灰度图，并进行二值化处理，去除背景部分，得到一个类似掩膜的图像。然后将这个二值化图像与另一张图片中要添加水印的区域进行“与”运算，使得目标物体的形状出现在要添加水印的区域。最后，将得到的目标物体图像与要添加水印的区域进行相加，就完成了添加水印的操作。
+
+- 实例
+
+  ```python
+  #自定义方法
+  pic=cv2.imread('pic.jpg')
+  logo=cv2.imread('logo.png')
+  
+  
+  logo_height,logo_width,_=logo.shape#获取logo长宽值
+  
+  hsv_logo=cv2.cvtColor(logo,cv2.COLOR_BGR2HSV)#水印图转HSV颜色空间，方便提取文字和字母
+  
+  logo_word_low=np.array([0,43,46])#文字颜色空间最低值
+  logo_word_high=np.array([10,255,255])#文字颜色空间最高值
+  
+  log_alpha_low=np.array([0,0,46])#字母颜色空间最低值
+  log_alpha_high=np.array([180,43,220])#字母颜色空间最高值
+  
+  hsv_logo_word_mask=cv2.inRange(hsv_logo,logo_word_low,logo_word_high)#获得文字掩膜
+  hsv_logo_alpha_mask=cv2.inRange(hsv_logo,log_alpha_low,log_alpha_high)#获得字母掩膜
+  
+  pic_logo=pic[200:200+logo_height,200:200+logo_width]#在目标图片中指定位置切出logo大小区域
+  
+  pic_logo[hsv_logo_word_mask>0]=logo[hsv_logo_word_mask>0]#替换文字
+  pic_logo[hsv_logo_alpha_mask>0]=logo[hsv_logo_alpha_mask>0]#替换字母
+  
+  print(pic_logo.shape)
+  
+  cv2.imshow('hsv_logo',hsv_logo_word_mask)
+  cv2.imshow('logo',pic_logo)
+  cv2.imshow('pic',pic)
+  cv2.waitKey(0)
+  ```
+
+  ```python
+  #标准方法
+  import cv2
+  import numpy as np
+  
+  #引入两个图片，第二个是logo
+  img1 = cv2.imread("./bg.png")
+  img2 = cv2.imread('logohq.png')
+  r1,c1,ch1 = img1.shape
+  r2,c2,ch2 = img2.shape
+  roi = img1[:r2,:c2]#取出img1中跟img2同样大小的区域
+  # cv2.imshow("roi",roi)
+  gray = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)#得到logo的灰度图
+  ret, ma1 = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY)#得到logo的掩膜:黑化的logo
+  # cv2.imshow("ma1",ma1)
+  
+  fg1 = cv2.bitwise_and(roi,roi,mask=ma1)#roi中跟ma1中黑色重叠的部分也变成黑色 其他地方颜色不变
+  cv2.imshow("fg1",fg1)
+  
+  
+  ret, ma2 = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY_INV)#得到logo的掩膜:白色化的logo
+  # cv2.imshow("ma2",ma2)
+  fg2 = cv2.bitwise_and(img2,img2,mask = ma2)#img2原logo中跟ma2中白色重叠的部分保留 其他地方颜色变黑
+  cv2.imshow("fg2",fg2)
+  
+  roi[:] = cv2.add(fg1, fg2)#合到一起
+  
+  cv2.imshow('img1',img1)#修改roi的数据相当于修改原图:看下面案例
+  
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+  | ![point_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/point_pic.png) | ![logo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/logo.png) | ![water_logo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/water_logo.png) |
+  | ------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------------------ |
+  | 图1                                                          | 图2                                                 | 水印                                                         |
+
+  
+
+
+

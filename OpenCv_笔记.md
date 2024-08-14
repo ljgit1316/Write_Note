@@ -1236,20 +1236,17 @@ y=r\times\sin(\alpha-\theta)=r\sin\alpha\cos\theta-r\cos\alpha\sin\theta=-x_{0}\
 $$
 
 用矩阵来表示就是
-$$
-\left[\begin{array}{l  l}{{x}}\\{{y}}\end{array}\right]=\left[\begin{array}{l  l}{{\cos\theta~~~~\sin\theta}}\\{{-\sin\theta~~~~\cos\theta}}\\\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\end{array}\right]
-$$
+
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M1.png)
 
 然而，**在OpenCV中，旋转时是以图像的左上角为旋转中心，且以逆时针为正方向，因此上面的例子中其实是个负值，**那么该矩阵可写为：
-$$
-\left[\begin{array}{l  l}{{x}}\\{{y}}\end{array}\right]=\left[\begin{array}{l  l}{{\cos\theta~~~~-\sin\theta}}\\{{\sin\theta~~~~\cos\theta}}\\
-\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\end{array}\right]
-$$
+
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M2.png)
+  
 其中，
-$$
-\left[\begin{array}{l  l}{{\cos\theta~~~~-\sin\theta}}\\{{\sin\theta~~~~\cos\theta}}\\
-\end{array}\right]
-$$
+
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M3.png)
+  
 也被称作旋转矩阵。然而我们所要的不仅仅是可以围绕图像左上角进行旋转，而是可以围绕任意点进行旋转。那么我们可以将其转化成绕原点的旋转，其过程为：
 
 1. **首先将旋转点移到原点**
@@ -1261,46 +1258,43 @@ $$
 ![random_point](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/random_point.png)
 
 那么我们就可以得到：
-$$
-x=x_{0}+t_{x}
-$$
 
 $$
 y=y_{0}+t_{y}
 $$
 
+$$
+x=x_{0}+t_{x}
+$$
+
 写成矩阵的形式为：
-$$
-\left[\begin{array}{l  l  l}{{x}}\\{{y}}\\{1}\end{array}\right]=\left[\begin{array}{c}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
-\end{array}\right]*\left[\begin{array}{c}{{x_0}}\\{{y_0}}\\{1}\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M4.png)
+
 于是
-$$
-\left[\begin{array}{l  l  l}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
-\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M5.png)
+
 也被叫做平移矩阵，相反的，从P移到点时，其平移矩阵为：
-$$
-\left[\begin{array}{l l l}{1}&{0}&{-\,t_{x}}\\ {0}&{1}&{-\,t_{y}}\\ {0}&{0}&{1}\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M6.png)
+
 我们将原始的旋转矩阵也扩展到3\*3的形式：
-$$
-\begin{array}{l l l}{{\left[\begin{array}{c}{{x}}\\{{y}}\\{1} \end{array}\right]=\left[\begin{array}{c c c}{{\cos\theta}}&{{-\sin\theta}}&{{0}}\\ {{\sin\theta}}&{{\cos\theta}}&{{0}}\\ {{0}}&{{0}}&{{1}}\end{array}\right]*\left[\begin{array}{c}{{x_{0}}}\\{{y_{0}}}\\{{1}}\end{array}\right]}}\end{array}
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M7.png)
+
 从平移和旋转的矩阵可以看出，3x3矩阵的前2x2部分是和旋转相关的，第三列与平移相关。有了上面的表达式之后，我们就可以得到二维空间中绕任意点旋转的旋转矩阵了，只需要将旋转矩阵先左乘
-$$
-\left[\begin{array}{l  l  l}{{1~~~~0~~~~t_{x}}}\\{{0~~~~1~~~~t_{y}}}\\{{0~~~~0~~~~1}}
-\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M8.png)
+
 ，再右乘
-$$
-\left[\begin{array}{l l l}{1}&{0}&{-\,t_{x}}\\ {0}&{1}&{-\,t_{y}}\\ {0}&{0}&{1}\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M9.png)
+
 即可得到最终的矩阵，其结果为：
-$$
-M=\left[\begin{array}{l  l  l}{{\cos\theta~~-\sin\theta~~(1-\cos\theta)t_{x}+t_{y}*\sin\theta}}\\{{\sin\theta~~~\cos\theta~~~~~(1-\cos\theta)t_{y}+t_{x}*\sin\theta}}\\{{0~~~~~~~~~~~~~0~~~~~~~~~~~~~1}}
-\end{array}\right]
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M10.png)
+
 于是我们就可以根据这个矩阵计算出图像中任意一点绕某点旋转后的坐标了，这个矩阵学名叫做**仿射变换矩阵**，而仿射变换是一种二维坐标到二维坐标之间的线性变换，也就是只涉及一个平面内二维图形的线性变换，图像旋转就是仿射变换的一种。它保持了二维图形的两种性质：
 
 1. **平直性：直线经过变换后依然是直线。**
@@ -1373,13 +1367,8 @@ $$
 - 公式
 
 
-  $$
-  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
-  $$
-
-  $$
-  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
-  $$
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M11.png)
+  
 
   **dstX**表示目标图像中某点的x坐标，**srcWidth**表示原图的宽度，dstWidth表示目标图像的宽度；**dstY**表示目标图像中某点的y坐标，**srcHeight**表示原图的高度，**dstHeight**表示目标图像的高度。而**srcX**和**srcY**则表示目标图像中的某点对应的原图中的点的x和y的坐标。
 
@@ -1390,24 +1379,16 @@ $$
   ![near_show](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/near_show.png)
 
   根据公式我们就可以计算出放大后的图像（0，0）点对应的原图像中的坐标为：
-  $$
-  s r c x=0*({\frac{2}{4}})=0
-  $$
-
-  $$
-  s r c y=0*({\frac{2}{4}})=0
-  $$
+  
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M12.png)
+ 
 
   也就是原图中的（0，0）点，而最近邻插值的原则是：目标像素点的像素值与经过该公式计算出来的对应的像素点的像素值相同，**如出现小数部分需要进行取整(向下取整)**。那么放大后图像的（0，0）坐标处的像素值就是原图像中（0，0）坐标处的像素值，也就是10。
 
   接下来就是计算放大后图像（1，0）点对应的原图像的坐标，还是带入公式：
-  $$
-  s r c y=1*({\frac{2}{4}})=0.5
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M13.png)
 
-  $$
-  s r c y=0*({\frac{2}{4}})=0
-  $$
 
   也就是原图中的（0.5，0）点，因此需要对计算出来的坐标值进行取整，取整后的结果为（0，0），也就是说放大后的图像中的（1，0）坐标处对应的像素值就是原图中（0，0）坐标处的像素值，其他像素点计算规则与此相同。
 
@@ -1437,24 +1418,15 @@ $$
 - 公式
 
   假如已知两个点(X0,Y0)和(x1,y1)，我们要计算[x0,y0]区间内某一位置x在直线上的y值，那么计算过程为：
-  $$
-  {\frac{y-y_{0}}{x-x_{0}}}={\frac{y_{1}-y_{0}}{x_{1}-x_{0}}}
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M14.png)
 
-  $$
-  y={\frac{x_{1}-x}{x_{1}-x_{0}}}y_{0}+{\frac{x-x_{0}}{x_{1}-x_{0}}}y_{1}
-  $$
 
   仔细看公式，其实就是计算距离，并将距离作为一个权重用于y0和y1的加权求和。这就是线性插值，而双线性插值本质上就是在两个方向上做线性插值。
 
   还是给出目标点与原图像中点的计算公式：
-  $$
-  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
-  $$
-
-  $$
-  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M15.png)
 
 - 图示
 
@@ -1465,18 +1437,14 @@ $$
   然后根据Q11、Q21得到R1的插值，根据Q12、Q22得到R2的插值，然后根据R1、R2得到P的插值即可，这就是双线性插值。
 
   首先计算R1和R2的插值：
-  $$
-  f(R_{1})\approx\frac{x_{2}-x}{x_{2}-x_{1}}f(Q_{11})+\frac{x-x_{1}}{x_{2}-x_{1}}f(Q_{21})
-  $$
-
-  $$
-  f(R_{2})\approx\frac{x_{2}-x}{x_{2}-x_{1}}f(Q_{12})+\frac{x-x_{1}}{x_{2}-x_{1}}f(Q_{22})
-  $$
+  
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M16.png)
+ 
 
   然后根据R1和R2计算P的插值：
-  $$
-  f(P)\approx{\frac{y_{2}-y}{y_{2}-y_{1}}}f(R_{1})+{\frac{y-y_{1}}{y_{2}-y_{1}}}f(R_{2})
-  $$
+  
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M17.png)
+ 
   这样就得到了P点的插值。注意此处如果先在y方向插值、再在x方向插值，其结果与按照上述顺序双线性插值的结果是一样的。
 
 - 出现的问题
@@ -1492,13 +1460,9 @@ $$
 - 改进公式
 
 
-  $$
-  s r c X=(d s t X+0.5)*{\frac{s r c W i d t h}{d s t W i d t h}}-0.5
-  $$
 
-  $$
-  s r c Y=(d s t Y+0.5)\ast{\frac{s r c H e i g h t}{d s t H e i g h t}}-0.5
-  $$
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M18.png)
+
 
 #### 3.3像素区域插值
 
@@ -1519,13 +1483,9 @@ $$
 - 公式
 
 
-  $$
-  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
-  $$
 
-  $$
-  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
-  $$
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M19.png)
+
 
 #### 3.4双三次插值
 
@@ -1542,13 +1502,9 @@ $$
 - 公式
 
   目标像素点与原图像的像素点的对应公式如下所示：
-  $$
-  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M20.png)
 
-  $$
-  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
-  $$
 
 - 说明
 
@@ -1564,9 +1520,8 @@ $$
   其中，**a一般取-0.5或-0.75。**
 
   我们要做的就是将上面的16个点的坐标带入函数中，获取16像素所对应的权重W(x)。然而BiCubic函数是一维的，所以我们需要将像素点的行与列分开计算，比如a00这个点，我们需要将x=0带入BiCubic函数中，计算a00点对于P点的x方向的权重，然后将y=0带入BiCubic函数中，计算a00点对于P点的y方向的权重，其他像素点也是这样的计算过程，最终我们就可以得到P所对应的目标图像B在（X,Y）处的像素值为：
-  $$
-  B(X,Y)=\sum_{i=0}^{3}\sum_{j=0}^{3}a_{i j}\times W_{(i)}\times W_{(j)}
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M21.png)
 
 #### 3.5Lanczos插值
 
@@ -1583,13 +1538,9 @@ $$
 - 公式
 
   目标像素点与原图像的像素点的对应公式如下所示：
-  $$
-  s r c X=d s t X*{\frac{s r c W i d t h}{d s t W i d t h}}
-  $$
+  
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M22.png)
 
-  $$
-  s r c Y=d s t Y*{\frac{s r c H e i g h t}{d s t H e i g h t}}
-  $$
 
 - 说明
 
@@ -1606,9 +1557,9 @@ $$
 **其中a通常取2或者3，当a=2时，该算法适用于图像缩小。a=3时，该算法适用于图像放大。**
 
 与双三次插值一样，这里也需要将像素点分行和列分别带入计算权重值，其他像素点也是这样的计算过程，最终我们就可以得到P所对应的目标图像B在（X,Y）处的像素值为：
-$$
-S(x,y)=\sum_{i=[x]-a+1}^{[x]+a}\sum_{j=[y]-a+1}^{[y]+a}s_{i j}L(x-i)L(y-j)
-$$
+
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M23.png)
+
 
 #### 3.7插值方法小结
 
@@ -1860,31 +1811,19 @@ $$
 
   透视变换矩阵：
 
+
   
-  $$
-  \begin{array}{l l l}{{\left[\begin{array}{c}{{X}}\\{{Y}}\\{Z} \end{array}\right]=\left[\begin{array}{c c c}{{a_{11}}}&{{a_{12}}}&{{a_{13}}}\\ {{a_{21}}}&{{a_{22}}}&{{a_{23}}}\\ {{a_{31}}}&{{a_{32}}}&{{a_{33}}}\end{array}\right]*\left[\begin{array}{c}{{x}}\\{{y}}\\{{1}}\end{array}\right]}}\end{array}
-  $$
+![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M24.png)
+
   即
-  $$
-  X=a_{11}\cdot x+a_{12}\cdot y+a_{13}
-  $$
-
-  $$
-  Y=a_{21}\cdot x+a_{22}\cdot y+a_{23}
-  $$
-
-  $$
-  Z=a_{31}\cdot x+a_{32}\cdot y+a_{33}
-  $$
+  
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M5.png)
+ 
 
   由此可得新的坐标的表达式为：
-  $$
-  x^{\prime}={\frac{X}{Z}}={\frac{a_{11}\cdot x+a_{12}\cdot y+a_{13}}{a_{31}\cdot x+a_{32}\cdot y+a_{33}}}
-  $$
-
-  $$
-  y^{\prime}={\frac{Y}{Z}}={\frac{a_{21}\cdot x+a_{22}\cdot y+a_{23}}{a_{31}\cdot x+a_{32}\cdot y+a_{33}}}
-  $$
+  
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/M26.png)
+  
 
   其中x、y是原始图像点的坐标，x‘、y’是变换后的坐标，a11，a12，…,a33则是一些旋转量和平移量，由于透视变换矩阵的推导涉及三维的转换，所以这里不具体研究该矩阵，只要会使用就行。
 

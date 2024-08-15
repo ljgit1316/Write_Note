@@ -2020,9 +2020,7 @@ cv2.waitKey(0)
   如3×3的卷积核：
 
 
-  $$
-  k e r n e l={\frac{1}{9}}{\Bigg[}\begin{array}{l l l}{1}&{1}&{1}\\{1}&{1}&{1}\\{1}&{1}&{1}\end{array}{\Bigg]}
-  $$
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM1.png)
 
 - 图示
 
@@ -2061,9 +2059,7 @@ cv2.waitKey(0)
   方框滤波跟均值滤波很像，如3×3的滤波核如下：
 
 
-  $$
-  k e r n e l={a}{\Bigg[}\begin{array}{l l l}{1}&{1}&{1}\\{1}&{1}&{1}\\{1}&{1}&{1}\end{array}{\Bigg]}
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM2.png)
 
 - 图示
 
@@ -2115,24 +2111,18 @@ cv2.waitKey(0)
   
 
 
-  $$
-  g(x,y)=\frac{1}{2\pi\sigma^{2}}e^{-\frac{(x^{2}+y^{2})}{2\sigma^{2}}}
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM3.png)
+  
   其中的值也是与自适应二值化里的一样，当时会取固定的系数，当kernel大于7并且没有设置时，会使用固定的公式进行计算σ的值：
 
 
-  $$
-  \sigma=0.3*\left((k s i z e-1)*0.5-1\right)+0.8
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM4.png)
 
 
   以3\*3的卷积核为例，其核值如下所示：
 
 
-  $$
-  \ k e r n e l=\left[\begin{array}{c}{{0.0625~~~~0.125~~~~0.0625}}\\{{0.125~~~~0.25~~~~0.125}}\\{{0.0625~~~~0.125~~~~0.0625}}
-  \end{array}\right]=\left[\begin{array}{c c c}{\frac{1}{16}~~~\frac{1}{8}~~~\frac{1}{16}}\\{\frac{1}{8}~~~\frac{1}{4}~~~\frac{1}{8}}\\{\frac{1}{16}~~~\frac{1}{8}~~~\frac{1}{16}}\end{array}\right]
-  $$
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM5.png)
 
 - 图示
 
@@ -2209,49 +2199,7 @@ cv2.waitKey(0)
   
 
 
-  $$
-  g(i,j)=\frac{\sum_{(k,l)\in S(i,j)}f(k,l)\omega(i,j,k,l)}{\Sigma_{(k,l)\in S(i,j)}\omega(i,j,k,l)}
-  $$
-  其中，
-
-  $$
-  S(i,j)：指以（i，j）为中心的邻域的范围
-  $$
-
-  $$
-  f(k,l)：输入的点的像素值
-  $$
-
-  $$
-  \omega(i,j,k,l)：代表经过两个高斯函数计算出的值
-  $$
-
-  $$
-  g(i,j)：表示中心点（i，j）的像素值
-  $$
-
-  $$
-  上述公式我们进行转化，假设公式中\omega(i,j,k,l)为m，则有\\
-  g(i,j)=\frac{f_{1}\cdot m_{1}+f_{2}\cdot m_{2}+\dots+f_{n}\cdot m_{n}}{m_{1}+m_{2}+\dots+m_{n}}
-  $$
-
-  $$
-  设m_{1}+m_{2}+\cdots+m_{n}=M，则有\\
-  g(i,j)=f_{1}\cdot{\frac{m_{1}}{M}}+f_{2}\cdot{\frac{m_{2}}{M}}+\cdots+f_{n}\cdot{\frac{m_{n}}{M}}
-  $$
-
-  $$
-  此时可以看到，这与上面的滤波中计算过程已经一模一样了，\\\frac{m_{1}}{M}就代表了第一个点的权重。接下来我们看看\omega(i,j,k,l)是怎么来的，令\\
-  \omega(i,j,k,l)=w_{s}*w_{r}
-  $$
-
-  $$
-  \omega_{s}=e^{-{\frac{(i-k)^{2}+(j-l)^{2}}{2\sigma_{s}{}^{2}}}}
-  $$
-
-  $$
-  \omega_{r}=e^{-{\frac{\|f(i,j)-f(k,l)\|^{2}}{2\sigma_{r}{}^{2}}}}
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM6.png)
 
   可以看到，对于ωs来说，这就是普通的高斯滤波函数，其带入的坐标是坐标值，Σs是程序输入值，该函数是在空间临近度上计算的。而ωr是计算像素值相似度，也是高斯函数带入坐标值，然后得到对应点的像素值，进行两个点像素值插值的绝对值的平方。也就是说，双边滤波的核值不再是一个固定值，而是随着滤波的过程在不断发生变化的。
 
@@ -2330,9 +2278,7 @@ cv2.waitKey(0)
   
 
 
-  $$
-  k1=\left[\begin{array}{c c c}{{-1}}&{{0}}&{{1}}\\ {{-2}}&{{0}}&{{2}}\\ {{-1}}&{{0}}&{{1}}\end{array}\right]
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM7.png)
 
   
 
@@ -2353,9 +2299,7 @@ cv2.waitKey(0)
   把上面那个矩阵转置一下，就是提取水平边缘。
 
 
-  $$
-  k2=\left[\begin{array}{c c c}{{-1}}&{{-2}}&{{-1}}\\ {{0}}&{{0}}&{{0}}\\ {{1}}&{{2}}&{{1}}\end{array}\right]
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM8.png)
 
 - 图示
 
@@ -2471,59 +2415,17 @@ $$
   二阶导计算梯度：
 
 
-  $$
-  d s t={\frac{\partial^{2}f}{\partial x^{2}}}+{\frac{\partial^{2}f}{\partial y^{2}}}
-  $$
-
-
-  一维的一阶和二阶差分公式分别为：
-
-
-  $$
-  {\frac{\partial f}{\partial x}}=f(x+1)-f(x)
-  $$
-
-  $$
-  {\frac{\partial^{2}f}{\partial x^{2}}}=f(x+1)+f(x-1)-2f(x)
-  $$
-
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM9.png)
   
-
-  提取前面的系数，那么一维的Laplacian滤波核是：
-
-
-  $$
-  k=[1~~-2~~~1]
-  $$
-
-
-  而对于二维函数f(x,y)，两个方向的二阶差分分别是：
-
-
-  $$
-  {\frac{\partial^{2}f}{\partial x^{2}}}=f(x+1,y)+f(x-1,y)-2f(x,y)
-  $$
-
-  $$
-  {\frac{\partial^{2}f}{\partial y^{2}}}=f(x,y+1)+f(x,y-1)-2f(x,y)
-  $$
-
-  合在一起就是：
-  $$
-  V^{2}f(x,y)=f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y)
-  $$
   同样提取前面的系数，那么二维的Laplacian滤波核就是：
 
 
-  $$
-  k=\left[\begin{array}{c c c}{0}&{1}&{0}\\ {1}&{-4}&{1}\\ {0}&{1}&{0}\end{array}\right]
-  $$
+   ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM10.png)
+  
   这就是Laplacian算子的图像卷积模板，有些资料中在此基础上考虑斜对角情况，将卷积核拓展为：
 
 
-  $$
-  k=\left[\begin{array}{c c c}{1}&{1}&{1}\\ {1}&{-8}&{1}\\ {1}&{1}&{1}\end{array}\right]
-  $$
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM11.png)
 
 - 语法
 
@@ -2579,9 +2481,7 @@ $$
 
 
 
-$$
-kernel=\frac{1}{256}\left[\begin{array}{c c c c c}{{1}}&{{4}}&{{6}}&{{4}}&{{1}}\\ {{4}}&{{16}}&{{24}}&{{16}}&{{4}}\\{{6}}&{{24}}&{{36}}&{{24}}&{{6}} \\{{4}}&{{16}}&{{24}}&{{16}}&{{4}}\\{{1}}&{{4}}&{{6}}&{{4}}&{{1}}\end{array}\right]
-$$
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM12.png)
 
 
 ### 2.计算图像的梯度和方向
@@ -2589,22 +2489,16 @@ $$
 使用sobel算子卷积核来计算图像的梯度值：
 
 
-$$
-sobel(垂直边缘（水平方向梯度）)=\left[\begin{array}{c c c}{{-1}}&{{0}}&{{1}}\\ {{-2}}&{{0}}&{{2}}\\ {{-1}}&{{0}}&{{1}}\end{array}\right]
-$$
-
-$$
-sobel(水平边缘（垂直方向梯度）)=\left[\begin{array}{c c c}{{-1}}&{{-2}}&{{-1}}\\ {{0}}&{{0}}&{{0}}\\ {{1}}&{{2}}&{{1}}\end{array}\right]
-$$
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM13.png)
+ 
 
 获得两个方向的梯度值后，这不是图像真正的梯度值，可以使用勾股定理处理两个方向梯度值，在opencv中常用G=|Gx+Gy|来计算实际梯度值
 
 在等到实际梯度值后，要需要确定梯度方向，通过如下公式获得梯度方向：
 
 
-$$
-\theta=\arctan\,({\frac{G_{\mathrm{y}}}{G_{x}}})
-$$
+ ![](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/NUM14.png)
+ 
 **角度值其实是当前边缘的梯度的方向**，然后根据梯度方向获取边缘的方向。
 
 获取边缘的两种选择方式：

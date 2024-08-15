@@ -1958,6 +1958,854 @@ $$
   | 图1                                                          | 图2                                                 | 水印                                                         |
 
   
+## 图像噪点消除
+
+​		噪声：指图像中的一些干扰因素，通常是由图像采集设备、传输信道等因素造成的，表现为图像中随机的亮度，也可以理解为有那么一些点的像素值与周围的像素值格格不入。
+
+​		常见的噪声类型包括高斯噪声和椒盐噪声。高斯噪声是一种分布符合正态分布的噪声，会使图像变得模糊或有噪点。椒盐噪声则是一些黑白色的像素值分布在原图像中。
+
+```python
+#生成椒盐噪点
+def add_salt_and_pepper_noise(image, salt_prob, pepper_prob):
+    noise = np.zeros(image.shape, dtype=np.uint8)
+    salt_locations = np.random.rand(*image.shape) < salt_prob
+    pepper_locations = np.random.rand(*image.shape) < pepper_prob
+    noise[salt_locations] = 255
+    noise[pepper_locations] = 0
+    noisy_image = cv2.add(image, noise)
+    return noisy_image
+
+# 读取图像
+image = cv2.imread('pic.jpg')
+# 添加椒盐噪声
+noisy_image = add_salt_and_pepper_noise(image, 0.05, 0.05)
+# 显示原始图像和添加噪声后的图像
+cv2.imshow('Original Image', image)
+cv2.imshow('Noisy Image', noisy_image)
+cv2.waitKey(0)
+
+```
+
+```python
+#生成高斯噪点
+pic=cv2.imread('pic.jpg')
+noise=np.random.normal(0,25,pic.shape).astype(np.uint8)
+gauss_image=cv2.add(pic,noise)
+
+cv2.imshow('show',gauss_image)
+cv2.waitKey(0)
+
+```
+
+| ![pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/pic.jpg) | ![gauss_noise](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_noise.png) | ![salt_noise](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/salt_noise.png) |
+| ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 原图                                              | 高斯噪点                                                     | 椒盐噪点                                                     |
+
+​		滤波器：也可以叫做卷积核，与自适应二值化中的核一样，本身是一个小的区域，有着特定的核值，并且工作原理也是在原图上进行滑动并计算中心像素点的像素值。
+
+​		滤波器可分为线性滤波和非线性滤波，线性滤波对邻域中的像素进行线性运算，如在核的范围内进行加权求和，常见的线性滤波器有均值滤波、高斯滤波等。非线性滤波则是利用原始图像与模板之间的一种逻辑关系得到结果，常见的非线性滤波器中有中值滤波器、双边滤波器等。
+
+滤波与模糊联系与区别：
+
+- 它们都属于卷积，不同滤波方法之间只是卷积核不同（对线性滤波而言）
+- 低通滤波器是模糊，高通滤波器是锐化
+- 低通滤波器就是允许低频信号通过，在图像中边缘和噪点都相当于高频部分，所以低通滤波器用于去除噪点、平滑和模糊图像。高通滤波器则反之，用来增强图像边缘，进行锐化处理。
+
+### 1.均值滤波器
+
+- 定义
+
+  均值滤波是一种最简单的滤波处理，它取的是卷积核区域内元素的均值。
+
+  如3×3的卷积核：
+
+
+  $$
+  k e r n e l={\frac{1}{9}}{\Bigg[}\begin{array}{l l l}{1}&{1}&{1}\\{1}&{1}&{1}\\{1}&{1}&{1}\end{array}{\Bigg]}
+  $$
+
+- 图示
+
+  如有一张4\*4的图片，现在使用一个3\*3的卷积核进行均值滤波时，其过程如下所示：
+
+  边界的像素点，则会进行边界填充，以确保卷积核的中心能够对准边界的像素点进行滤波操作。
+
+  在OpenCV中，**默认边缘填充的是使用BORDER_REFLECT_101的方式进行填充**，下面的滤波方法中**除了中值滤波使用的是BORDER_REPLICATE进行填充之外**，其他默认也是使用这个方式进行填充。
+
+  ![average_bo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_bo.png)
+
+  ![average_bo2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_bo2.png)
+
+- 实例
+
+  ```python
+  gauss_pic=cv2.imread('gauss_noise.png')
+  salit_pic=cv2.imread('salt_noise.png')
+  
+  deal_gauss=cv2.blur(gauss_pic,(3,3))#（3，3）核大小
+  deal_salt=cv2.blur(salit_pic,(3,3))
+  
+  cv2.imshow('deal_gauss',deal_gauss)
+  cv2.imshow('deal_salt',deal_salt)
+  cv2.waitKey(0)
+  ```
+
+  | ![average_deal_gauss](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_deal_gauss.png) | ![average_deal_salt](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_deal_salt.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 均值处理高斯噪点                                             | 均值处理椒盐噪点                                             |
+
+### 2.方框滤波器
+
+- 定义
+
+  方框滤波跟均值滤波很像，如3×3的滤波核如下：
+
+
+  $$
+  k e r n e l={a}{\Bigg[}\begin{array}{l l l}{1}&{1}&{1}\\{1}&{1}&{1}\\{1}&{1}&{1}\end{array}{\Bigg]}
+  $$
+
+- 图示
+
+  ![box_bo2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/box_bo2.png)
+
+  ksize：代表卷积核的大小，eg：ksize=3，则代表使用3×3的卷积核。
+
+  ddepth：输出图像的深度，-1代表使用原图像的深度。
+
+  normalize：**当normalize为True的时候，方框滤波就是均值滤波，公式中的a就等于1/9；normalize为False的时候，a=1，相当于求区域内的像素和。**
+
+  其滤波的过程与均值滤波一模一样，都采用卷积核从图像左上角开始，逐个计算对应位置的像素值，并从左至右、从上至下滑动卷积核，直至到达图像右下角。
+
+  | ![box_bo3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/box_bo3.png) | ![box_bo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/box_bo.png) |
+  | --------------------------------------------------------- | ------------------------------------------------------- |
+  | normalize=True                                            | normalize=False                                         |
+
+- 实例
+
+  ```python
+  gauss_pic=cv2.imread('gauss_noise.png')
+  salit_pic=cv2.imread('salt_noise.png')
+  
+  deal_gauss=cv2.boxFilter(gauss_pic,-1,(3,3),normalize=True)
+  deal_salt=cv2.boxFilter(salit_pic,-1,(3,3),normalize=True)
+  """
+  ksize：代表卷积核的大小，eg：ksize=3，则代表使用3×3的卷积核。
+  
+  ddepth：输出图像的深度，-1代表使用原图像的深度。
+  
+  normalize：**当normalize为True的时候，方框滤波就是均值滤波，公式中的a就等于1/9；normalize为False的时候，a=1，相当于求区域内的像素和。**
+  
+  """
+  cv2.imshow('deal_gauss',deal_gauss)
+  cv2.imshow('deal_salt',deal_salt)
+  cv2.waitKey(0)
+  ```
+
+  | ![average_deal_gauss](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_deal_gauss.png) | ![average_deal_salt](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/average_deal_salt.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 方框处理高斯噪点                                             | 方框处理椒盐噪点                                             |
+
+### 3.高斯滤波器
+
+- 定义
+
+  高斯滤波的卷积核权重并不相同：中间像素点权重最高，越远离中心的像素权重越小。这里跟自适应二值化里生成高斯核的步骤是一样的，都是以核的中心位置为坐标原点，然后计算周围点的坐标。
+
+  
+
+
+  $$
+  g(x,y)=\frac{1}{2\pi\sigma^{2}}e^{-\frac{(x^{2}+y^{2})}{2\sigma^{2}}}
+  $$
+  其中的值也是与自适应二值化里的一样，当时会取固定的系数，当kernel大于7并且没有设置时，会使用固定的公式进行计算σ的值：
+
+
+  $$
+  \sigma=0.3*\left((k s i z e-1)*0.5-1\right)+0.8
+  $$
+
+
+  以3\*3的卷积核为例，其核值如下所示：
+
+
+  $$
+  \ k e r n e l=\left[\begin{array}{c}{{0.0625~~~~0.125~~~~0.0625}}\\{{0.125~~~~0.25~~~~0.125}}\\{{0.0625~~~~0.125~~~~0.0625}}
+  \end{array}\right]=\left[\begin{array}{c c c}{\frac{1}{16}~~~\frac{1}{8}~~~\frac{1}{16}}\\{\frac{1}{8}~~~\frac{1}{4}~~~\frac{1}{8}}\\{\frac{1}{16}~~~\frac{1}{8}~~~\frac{1}{16}}\end{array}\right]
+  $$
+
+- 图示
+
+  ![gauss_bo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_bo.png)
+
+  ksize：代表卷积核的大小，eg：ksize=3，则代表使用3×3的卷积核。
+
+  sigmaX：就是高斯函数里的值，σ值越大，模糊效果越明显。高斯滤波相比均值滤波效率要慢，但可以有效消除高斯噪声，能保留更多的图像细节，所以经常被称为最有用的滤波器。
+
+- 实例
+
+  ```python
+  gauss_pic=cv2.imread('gauss_noise.png')
+  
+  
+  deal_gauss=cv2.GaussianBlur(gauss_pic,ksize=(3,3),sigmaX=1)
+  """
+  ksize：代表卷积核的大小，eg：ksize=3，则代表使用3×3的卷积核。
+  
+  sigmaX：就是高斯函数里的值，σ值越大，模糊效果越明显。
+  
+  """
+  cv2.imshow('deal_gauss',deal_gauss)
+  
+  cv2.waitKey(0)
+  ```
+
+| ![gauss_noise](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_noise.png) | ![gauss_deal](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gauss_deal.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 原图                                                         | 高斯滤波                                                     |
+
+### 4.中值滤波器
+
+- 定义
+
+  中值又叫中位数，是所有数排序后取中间的值。中值滤波没有核值，而是在原图中从左上角开始，将卷积核区域内的像素值进行排序，并选取中值作为卷积核的中点的像素值。
+
+- 图示
+
+  ![mid_bo](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mid_bo.png)
+
+  中值滤波就是用区域内的中值来代替本像素值，所以那种孤立的斑点，如0或255很容易消除掉，**适用于去除椒盐噪声和斑点噪声。**中值是一种非线性操作，效率相比前面几种线性滤波要慢。
+
+- 实例
+
+  ```python
+  gauss_pic=cv2.imread('gauss_noise.png')
+  salit_pic=cv2.imread('salt_noise.png')
+  
+  deal_gauss=cv2.medianBlur(gauss_pic,ksize=3)
+  deal_salt=cv2.medianBlur(salit_pic,ksize=3)
+  
+  cv2.imshow('deal_gauss',deal_gauss)
+  cv2.imshow('deal_salt',deal_salt)
+  cv2.waitKey(0)
+  ```
+
+  | ![mid_deal_gauss](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mid_deal_gauss.png) | ![mid_deal_salt](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/mid_deal_salt.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 中值处理高斯噪点图                                           | 中值处理椒盐噪点图                                           |
+
+### 5.双边滤波器
+
+- 定义
+
+  模糊操作基本都会损失掉图像细节信息，尤其前面介绍的线性滤波器，图像的边缘信息很难保留下来。然而**，边缘（edge）**信息是图像中很重要的一个特征，所以这才有了双边滤波。
+
+  双边滤波的基本思路是同时考虑将要被滤波的像素点的**空域信息（周围像素点的位置的权重）和值域信息（周围像素点的像素值的权重）。**
+
+  双边滤波采用了两个高斯滤波的结合，**一个负责计算空间邻近度的权值（也就是空域信息）**，也就是上面的高斯滤波器，**另一个负责计算像素值相似度的权值（也就是值域信息）**，也是一个高斯滤波器。
+
+- 公式
+
+  
+
+
+  $$
+  g(i,j)=\frac{\sum_{(k,l)\in S(i,j)}f(k,l)\omega(i,j,k,l)}{\Sigma_{(k,l)\in S(i,j)}\omega(i,j,k,l)}
+  $$
+  其中，
+
+  $$
+  S(i,j)：指以（i，j）为中心的邻域的范围
+  $$
+
+  $$
+  f(k,l)：输入的点的像素值
+  $$
+
+  $$
+  \omega(i,j,k,l)：代表经过两个高斯函数计算出的值
+  $$
+
+  $$
+  g(i,j)：表示中心点（i，j）的像素值
+  $$
+
+  $$
+  上述公式我们进行转化，假设公式中\omega(i,j,k,l)为m，则有\\
+  g(i,j)=\frac{f_{1}\cdot m_{1}+f_{2}\cdot m_{2}+\dots+f_{n}\cdot m_{n}}{m_{1}+m_{2}+\dots+m_{n}}
+  $$
+
+  $$
+  设m_{1}+m_{2}+\cdots+m_{n}=M，则有\\
+  g(i,j)=f_{1}\cdot{\frac{m_{1}}{M}}+f_{2}\cdot{\frac{m_{2}}{M}}+\cdots+f_{n}\cdot{\frac{m_{n}}{M}}
+  $$
+
+  $$
+  此时可以看到，这与上面的滤波中计算过程已经一模一样了，\\\frac{m_{1}}{M}就代表了第一个点的权重。接下来我们看看\omega(i,j,k,l)是怎么来的，令\\
+  \omega(i,j,k,l)=w_{s}*w_{r}
+  $$
+
+  $$
+  \omega_{s}=e^{-{\frac{(i-k)^{2}+(j-l)^{2}}{2\sigma_{s}{}^{2}}}}
+  $$
+
+  $$
+  \omega_{r}=e^{-{\frac{\|f(i,j)-f(k,l)\|^{2}}{2\sigma_{r}{}^{2}}}}
+  $$
+
+  可以看到，对于ωs来说，这就是普通的高斯滤波函数，其带入的坐标是坐标值，Σs是程序输入值，该函数是在空间临近度上计算的。而ωr是计算像素值相似度，也是高斯函数带入坐标值，然后得到对应点的像素值，进行两个点像素值插值的绝对值的平方。也就是说，双边滤波的核值不再是一个固定值，而是随着滤波的过程在不断发生变化的。
+
+- 参数说明
+
+  - ksize：卷积核的大小
+  - d：过滤时周围每个像素领域的直径
+  - sigmaColor：在color space中过滤sigma。参数越大，临近像素将会在越远的地方mix。
+  - sigmaSpace：在coordinate space中过滤sigma。参数越大，那些颜色足够相近的的颜色的影响越大。
+
+  关于2个sigma参数：
+
+  简单起见，可以令2个sigma的值相等；
+
+  如果他们很小（小于10），那么滤波器几乎没有什么效果；
+
+  如果他们很大（大于150），那么滤波器的效果会很强，使图像显得非常卡通化。
+
+  关于参数d：
+
+  过大的滤波器（d\>5）执行效率低。
+
+  对于实时应用，建议取d=5；
+
+  对于需要过滤严重噪声的离线应用，可取d=9；
+
+- 实例
+
+  ```python
+  gauss_pic=cv2.imread('gauss_noise.png')
+  salit_pic=cv2.imread('salt_noise.png')
+  
+  deal_gauss=cv2.bilateralFilter(gauss_pic,d=9,sigmaColor=100,sigmaSpace=100)
+  deal_salt=cv2.bilateralFilter(salit_pic,d=9,sigmaColor=100,sigmaSpace=100)
+  """
+  - ksize：卷积核的大小
+  - d：过滤时周围每个像素领域的直径
+  - sigmaColor：在color space中过滤sigma。参数越大，临近像素将会在越远的地方mix。
+  - sigmaSpace：在coordinate space中过滤sigma。参数越大，那些颜色足够相近的的颜色的影响越大。
+  
+  """
+  
+  cv2.imshow('deal_gauss',deal_gauss)
+  cv2.imshow('deal_salt',deal_salt)
+  cv2.waitKey(0)
+  ```
+
+  | ![double_deal_salt](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_deal_salt.png) | ![double_deal_gauss](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/double_deal_gauss.png) |
+  | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | 双边处理椒盐噪点                                             | 双边处理高斯噪点                                             |
+
+### 6.小结
+
+- 在不知道用什么滤波器好的时候，优先高斯滤波，然后均值滤波。
+
+- 斑点和椒盐噪声优先使用中值滤波。
+
+- 要去除噪点的同时尽可能保留更多的边缘信息，使用双边滤波。
+
+- 线性滤波方式：均值滤波、方框滤波、高斯滤波（速度相对快）。
+
+- 非线性滤波方式：中值滤波、双边滤波（速度相对慢）。
+
+## 图像梯度处理
+
+### 1.图像的梯度
+
+​		把图片想象成连续函数，因为边缘部分的像素值是与旁边像素明显有区别的，所以对图片局部求极值，就可以得到整幅图片的边缘信息了。不过图片是二维的离散函数，**导数就变成了差分，这个差分就称为图像的梯度。**
+
+### 2.垂直边缘提取
+
+#### 1.提取垂直边缘（得水平梯度）
+
+- 卷积核
+
+  
+
+
+  $$
+  k1=\left[\begin{array}{c c c}{{-1}}&{{0}}&{{1}}\\ {{-2}}&{{0}}&{{2}}\\ {{-1}}&{{0}}&{{1}}\end{array}\right]
+  $$
+
+  
+
+- 图示
+
+  ![vertical_work](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/vertical_work.png)
+
+  当前列左右两侧的元素进行差分，由于边缘的值明显小于（或大于）周边像素，所以边缘的差分结果会明显不同，这样就提取出了垂直边缘。**(小于0值设为0，大于255设为255)**
+
+  ![vertical_work2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/vertical_work2.png)
+
+
+
+#### 2.提取水平边缘（得垂直梯度）
+
+- 卷积核
+
+  把上面那个矩阵转置一下，就是提取水平边缘。
+
+
+  $$
+  k2=\left[\begin{array}{c c c}{{-1}}&{{-2}}&{{-1}}\\ {{0}}&{{0}}&{{0}}\\ {{1}}&{{2}}&{{1}}\end{array}\right]
+  $$
+
+- 图示
+
+  ![vertical_horzion](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/vertical_horzion.png)
+
+#### 3.梯度处理函数
+
+- 语法
+
+  filter2D函数是用于对图像进行二维卷积（滤波）操作。它允许自定义卷积核（kernel）来实现各种图像处理效果，如平滑、锐化、边缘检测等
+
+  ```
+  cv2.filter2D(src, ddepth, kernel)
+  ```
+
+- 参数
+
+  - `src`: 输入图像，一般为`numpy`数组。
+  - `ddepth`: 输出图像的深度，可以是负值（表示与原图相同）、正值或其他特定值（常用-1 表示输出与输入具有相同的深度）。
+  - `kernel`: 卷积核，一个二维数组（通常为奇数大小的方形矩阵），用于计算每个像素周围邻域的加权和。
+
+- 实例
+
+  ```python
+  num_pic=cv2.imread('num_du.png')
+  kernel_vertical=np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+  kernel_horizen=kernel_vertical.T
+  
+  num_pic_vertical=cv2.filter2D(num_pic,-1,kernel_vertical)
+  num_pic_horizen=cv2.filter2D(num_pic,-1,kernel_horizen)
+  """
+  - `src`: 输入图像，一般为`numpy`数组。
+  - `ddepth`: 输出图像的深度，可以是负值（表示与原图相同）、正值或其他特定值（常用-1 表示输出与输入具有相同的深度）。
+  - `kernel`: 卷积核，一个二维数组（通常为奇数大小的方形矩阵），用于计算每个像素周围邻域的加权和。
+  """
+  cv2.imshow('vertical',num_pic_vertical)
+  cv2.imshow('horizen',num_pic_horizen)
+  cv2.waitKey(0)
+  ```
+
+  | ![num_du](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/num_du.png) | ![vertical](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/vertical.png) | ![horizen](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/horizen.png) |
+  | ------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
+  | 原图                                                    | 垂直边缘                                                    | 水平边缘                                                  |
+
+### 3.sobel算子
+
+以上两个卷积核都叫做Sobel算子，只是方向不同，它先在垂直方向计算梯度:
+
+
+$$
+G_{x}=k_{1}\times s r c
+$$
+
+
+再在水平方向计算梯度:
+
+
+$$
+G_{y}=k_{2}\times s r c
+$$
+
+
+最后求出总梯度：
+
+
+$$
+G={\sqrt{G x^{2}+G y^{2}}}
+$$
+
+- 语法
+
+  ```
+  **sobel_image = cv2.Sobel(src, ddepth, dx, dy, ksize)**
+  ```
+
+- 图示
+
+  ![sobel](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/sobel11.png)
+
+- 参数说明
+
+  **src**：这是输入图像，通常应该是一个灰度图像（单通道图像），因为 Sobel 算子是基于像素亮度梯度计算的。在彩色图像的情况下，通常需要先将其转换为灰度图像。
+
+  **ddepth**：这个参数代表输出图像的深度，即输出图像的数据类型。在 OpenCV 中，-1 表示输出图像的深度与输入图像相同。
+
+  **dx,dy**：当组合为dx=1,dy=0时求x方向的一阶导数，在这里，设置为1意味着我们想要计算图像在水平方向（x轴）的梯度。当组合为    dx=0,dy=1时求y方向的一阶导数（如果同时为1，通常得不到想要的结果,想两个方向都处理的比较好 学习使用后面的算子）
+
+  **ksize**：Sobel算子的大小，可选择3、5、7，默认为3。
+
+- 实例
+
+  ```python
+  num_pic=cv2.imread('num_du.png')
+  kernel_vertical=np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+  kernel_horizen=kernel_vertical.T
+  
+  num_pic_vertical=cv2.Sobel(num_pic,-1,dx=1,dy=0,ksize=3)
+  num_pic_horizen=cv2.Sobel(num_pic,-1,dx=0,dy=1,ksize=3)
+  
+  cv2.imshow('vertical',num_pic_vertical)
+  cv2.imshow('horizen',num_pic_horizen)
+  cv2.waitKey(0)
+  ```
+
+  | ![num_du](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/num_du.png) | ![vertical](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/vertical.png) | ![horizen](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/horizen.png) |
+  | ------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
+  | 原图                                                    | 垂直边缘                                                    | 水平边缘                                                  |
+
+### 4.拉普拉斯算子（Laplacian）
+
+- 卷积核公式推导
+
+  二阶导计算梯度：
+
+
+  $$
+  d s t={\frac{\partial^{2}f}{\partial x^{2}}}+{\frac{\partial^{2}f}{\partial y^{2}}}
+  $$
+
+
+  一维的一阶和二阶差分公式分别为：
+
+
+  $$
+  {\frac{\partial f}{\partial x}}=f(x+1)-f(x)
+  $$
+
+  $$
+  {\frac{\partial^{2}f}{\partial x^{2}}}=f(x+1)+f(x-1)-2f(x)
+  $$
+
+  
+
+  提取前面的系数，那么一维的Laplacian滤波核是：
+
+
+  $$
+  k=[1~~-2~~~1]
+  $$
+
+
+  而对于二维函数f(x,y)，两个方向的二阶差分分别是：
+
+
+  $$
+  {\frac{\partial^{2}f}{\partial x^{2}}}=f(x+1,y)+f(x-1,y)-2f(x,y)
+  $$
+
+  $$
+  {\frac{\partial^{2}f}{\partial y^{2}}}=f(x,y+1)+f(x,y-1)-2f(x,y)
+  $$
+
+  合在一起就是：
+  $$
+  V^{2}f(x,y)=f(x+1,y)+f(x-1,y)+f(x,y+1)+f(x,y-1)-4f(x,y)
+  $$
+  同样提取前面的系数，那么二维的Laplacian滤波核就是：
+
+
+  $$
+  k=\left[\begin{array}{c c c}{0}&{1}&{0}\\ {1}&{-4}&{1}\\ {0}&{1}&{0}\end{array}\right]
+  $$
+  这就是Laplacian算子的图像卷积模板，有些资料中在此基础上考虑斜对角情况，将卷积核拓展为：
+
+
+  $$
+  k=\left[\begin{array}{c c c}{1}&{1}&{1}\\ {1}&{-8}&{1}\\ {1}&{1}&{1}\end{array}\right]
+  $$
+
+- 语法
+
+  ```
+  cv2.Laplacian(src, ddepth)
+  ```
+
+- 图示
+
+  ![la](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/la.png)
+
+- 参数说明
+
+  **src**：这是输入图像
+
+  **ddepth**：这个参数代表输出图像的深度，即输出图像的数据类型。在 OpenCV 中，-1 表示输出图像的深度与输入图像相同。
+
+- 实例
+
+  ```python
+  num_pic=cv2.imread('num_du.png')
+  kernel_vertical=np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+  kernel_horizen=kernel_vertical.T
+  
+  
+  num_pic_vertical=cv2.Laplacian(num_pic,-1)
+  num_pic_horizen=cv2.Laplacian(num_pic,-1)
+  
+  cv2.imshow('vertical',num_pic_vertical)
+  cv2.imshow('horizen',num_pic_horizen)
+  cv2.waitKey(0)
+  ```
+
+  | ![num_du](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/num_du.png) | ![lapulasi_deal](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/lapulasi_deal.png) |
+  | ------------------------------------------------------- | ------------------------------------------------------------ |
+  | 原图                                                    | 拉普拉斯算子处理                                             |
+
+## 图像边缘检测
+
+检测步骤：
+
+1. 读取图像
+2. 二值化图像。
+3. 高斯滤波。
+4. 计算图像的梯度和方向。
+5. 非极大值抑制。
+6. 双阈值筛选。
+
+### 1.高斯滤波
+
+边缘检测对噪点比较敏感，为了是边缘检测更加准确，需要对图像进行降噪处理，这里采用高斯降噪处理，卷积核为5\*5的高斯核：
+
+
+
+
+$$
+kernel=\frac{1}{256}\left[\begin{array}{c c c c c}{{1}}&{{4}}&{{6}}&{{4}}&{{1}}\\ {{4}}&{{16}}&{{24}}&{{16}}&{{4}}\\{{6}}&{{24}}&{{36}}&{{24}}&{{6}} \\{{4}}&{{16}}&{{24}}&{{16}}&{{4}}\\{{1}}&{{4}}&{{6}}&{{4}}&{{1}}\end{array}\right]
+$$
+
+
+### 2.计算图像的梯度和方向
+
+使用sobel算子卷积核来计算图像的梯度值：
+
+
+$$
+sobel(垂直边缘（水平方向梯度）)=\left[\begin{array}{c c c}{{-1}}&{{0}}&{{1}}\\ {{-2}}&{{0}}&{{2}}\\ {{-1}}&{{0}}&{{1}}\end{array}\right]
+$$
+
+$$
+sobel(水平边缘（垂直方向梯度）)=\left[\begin{array}{c c c}{{-1}}&{{-2}}&{{-1}}\\ {{0}}&{{0}}&{{0}}\\ {{1}}&{{2}}&{{1}}\end{array}\right]
+$$
+
+获得两个方向的梯度值后，这不是图像真正的梯度值，可以使用勾股定理处理两个方向梯度值，在opencv中常用G=|Gx+Gy|来计算实际梯度值
+
+在等到实际梯度值后，要需要确定梯度方向，通过如下公式获得梯度方向：
+
+
+$$
+\theta=\arctan\,({\frac{G_{\mathrm{y}}}{G_{x}}})
+$$
+**角度值其实是当前边缘的梯度的方向**，然后根据梯度方向获取边缘的方向。
+
+获取边缘的两种选择方式：
+
+1.如果梯度方向不是0°、45°、90°、135°这种特定角度，那么就要用到插值算法来计算当前像素点在其方向上进行插值的结果了，然后进行比较并判断是否保留该像素点。这里使用的是**单线性插值**，通过A1和A2两个像素点获得dTmp1与dTmp2处的插值，然后与**中心点C进行比较(非极大值抑制)。**
+
+2.得到θ的值之后，就可以对边缘方向进行分类，一般将其归为四个方向：水平方向、垂直方向、45°方向、135°方向。并且：
+
+当θ值为-22.5°\~22.5°，或-157.5°\~157.5°，则认为边缘为水平边缘；
+
+当法线方向为22.5°\~67.5°，或-112.5°\~-157.5°，则认为边缘为45°边缘；
+
+当法线方向为67.5°\~112.5°，或-67.5°\~-112.5°，则认为边缘为垂直边缘；
+
+当法线方向为112.5°\~157.5°，或-22.5°\~-67.5°，则认为边缘为135°边缘；
+
+| ![first](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/first.png) | ![second](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/second.png) |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| 第一种选择方式                                        | 第二种选择方式                                          |
+
+### 3.非极大值抑制
+
+​		边缘不经过处理是没办法使用的，因为高斯滤波的原因，边缘会变得模糊，导致经过第二步后得到的边缘像素点非常多，因此我们需要对其进行一些过滤操作，而非极大值抑制就是一个很好的方法，它会对得到的边缘像素进行一个排除，使边缘尽可能细一点。
+
+​		检查每个像素点的梯度方向上的相邻像素，并保留梯度值最大的像素，将其他像素抑制为零。假设当前像素点为（x，y），其梯度方向是0°（水平方向梯度，x轴），梯度值为G（x，y），那么我们就需要比较G（x，y）与两个相邻像素的梯度值：G（x-1，y）和G（x+1，y）。如果G（x，y）是三个值里面最大的，就保留该像素值，否则将其抑制为零。
+
+​		**非极大值抑制的目的**是在已经计算出图像梯度幅度图像的基础上，进一步细化边缘位置，减少假响应并确保边缘轮廓的一致性和单像素宽度。
+
+- 原理
+  - 在Canny算法中，首先通过高斯滤波和平滑图像，然后计算每个像素点的梯度幅值和方向。
+  - 对于每一个像素点，假设已知其梯度幅值（通常通过Sobel或其他导数算子计算得到）以及梯度的方向（通常是精确到某个离散的角度集合）。
+  - 非极大值抑制会沿着梯度方向检查像素点的梯度幅值是否是其邻域内（包括梯度方向指向的临近像素点）的最大值。
+  - 如果像素点的梯度幅值不是其梯度方向上局部极大值，则认为这个点不是边缘点，并将其梯度幅值置零或者忽略它。
+  - 这样做可以去除那些位于边缘两侧但由于噪声或者其他原因导致的不准确的梯度响应，从而保证最终得到的边缘只出现在梯度方向的极大值处，形成连续的、单像素宽的边缘。
+
+### 4.双阈值筛选
+
+- 定义
+
+  经过非极大值抑制之后，我们还需要设置阈值来进行筛选，当阈值设的太低，就会出现假边缘，而阈值设的太高，一些较弱的边缘就会被丢掉，因此使用了双阈值来进行筛选。
+
+- 图示
+
+  ![threshold](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/threshold.png)
+
+  当某一像素位置的幅值**超过最高阈值时，该像素必是边缘像素**；当幅值低**于最低像素时，该像素必不是边缘像素**；幅值处于最高像素与最低像素之间时，**如果它能连接到一个高于阈值的边缘时，则被认为是边缘像素，否则就不会被认为是边缘。**
+
+  上图中的A和C是边缘，B不是边缘。因为C虽然不超过最高阈值，但其与A相连，所以C就是边缘。
+
+- 原理
+
+  - 设定两个阈值，一般称为高阈值（`highThreshold`）和低阈值（`lowThreshold`）。
+  - 如果一个像素点的梯度幅值大于等于高阈值，则标记为强边缘像素；
+  - 若梯度幅值介于高阈值和低阈值之间，则标记为潜在边缘像素；
+  - 若梯度幅值低于低阈值，则认为是非边缘像素，不予考虑。
+  - 接下来，采用某种形式的连通性分析，例如Hysteresis（滞后效应），只有当一个弱边缘像素与一个强边缘像素相邻时，才保留这个弱边缘像素作为最终的边缘点。否则，弱边缘像素会被丢弃。
+
+### 5.API
+
+- 语法
+
+  ```
+  edges = cv2.Canny(image, threshold1, threshold2)
+  ```
+
+- 参数
+
+  - `image`：输入的灰度/二值化图像数据。（彩色图也可以）
+  - `threshold1`：低阈值，用于决定可能的边缘点。
+  - `threshold2`：高阈值，用于决定强边缘点。
+
+- 实例
+
+  ```python
+  #彩图采集边缘
+  pic=cv2.imread('pic.jpg')
+  edge=cv2.Canny(pic,60,200)
+  cv2.imshow('candy',edge)
+  cv2.waitKey(0)
+  
+  #标准化步骤
+  pic=cv2.imread('pic.jpg')
+  
+  pic_gray=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)#灰度化
+  
+  ret,pic_binary=cv2.threshold(pic_gray,127,255,cv2.THRESH_BINARY)
+  #二值化
+  
+  edge=cv2.Canny(pic_binary,60,200)
+  #采集边缘
+  
+  cv2.imshow('candy',edge)
+  cv2.waitKey(0)
+  ```
+
+  | ![pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/pic.jpg) | ![edge_ori](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/edge_ori.png) | ![edg_bina](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/edg_bina.png) |
+  | ------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+  | 原图                                              | 原图采集边缘                                                | 灰度二值化采集边缘                                          |
+
+## 绘制图像轮廓
+
+轮廓是一系列相连的点组成的曲线，代表了物体的基本外形。相对于边缘，轮廓是连续的，边缘不一定连续，如下图所示。其实边缘主要是作为图像的特征使用，比如可以用边缘特征可以区分脸和手，而轮廓主要用来分析物体的形态，比如物体的周长和面积等，可以说边缘包括轮廓。
+
+![countour](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/countour.png)
+
+### 1.寻找轮廓
+
+- 原理
+
+  ​		寻找轮廓需要将图像做一个**二值化处理**，并且根据图像的不同选择不同的二值化方法来将图像中要**绘制轮廓的部分置为白色，其余部分置为黑色。**也就是说，我们需要对原始的图像进行灰度化、二值化的处理，令目标区域显示为白色，其他区域显示为黑色。
+
+  ​		然后对图像中的像素进行**遍历**，当一个**白色像素相邻（上下左右及两条对角线）位置有黑色像素存在或者一个黑色像素相邻（上下左右及两条对角线）位置有白色像素存在时**，那么该像素点就会被认定为边界像素点，轮廓就是有无数个这样的边界点组成的。
+
+- 语法
+
+  ```
+  contours,hierarchy = cv2.findContours(image，mode，method)
+  ```
+
+- 参数
+
+  - contours：表示获取到的轮廓点的列表。检测到有多少个轮廓，该列表就有多少子列表，每一个子列表都代表了一个轮廓中所有点的坐标。
+  - hierarchy：表示轮廓之间的关系。对于第i条轮廓，hierarchy[i][0] , hierarchy[i][1] , hierarchy[i][2] , hierarchy[i][3]**分别表示其后一条轮廓、前一条轮廓、（同层次的第一个）子轮廓、父轮廓的索引（如果没有对应的索引，则为负数）**。该参数的使用情况会比较少。
+  - image：表示输入的二值化图像。
+  - mode：表示轮廓的检索模式。
+  - method：轮廓的表示方法。
+
+#### 1.1mode参数
+
+mode参数共有四个选项分别为：RETR_LIST，RETR_EXTERNAL，RETR_CCOMP，RETR_TREE。
+
+**RETR_LIST**
+
+表示列出所有的轮廓。并且在hierarchy里的轮廓关系中，每一个轮廓只有前一条轮廓与后一条轮廓的索引，而没有父轮廓与子轮廓的索引。
+
+**RETR_EXTERNAL**
+
+表示只列出最外层的轮廓。并且在hierarchy里的轮廓关系中，每一个轮廓只有前一条轮廓与后一条轮廓的索引，而没有父轮廓与子轮廓的索引。
+
+**RETR_CCOMP**
+
+表示列出所有的轮廓。并且在hierarchy里的轮廓关系中，轮廓会按照成对的方式显示。
+
+**RETR_TREE**
+
+表示列出所有的轮廓。并且在hierarchy里的轮廓关系中，轮廓会按照树的方式显示，其中最外层的轮廓作为树根，其子轮廓是一个个的树枝。
+
+#### 1.2method参数
+
+method参数有三个选项：CHAIN_APPROX_NONE、CHAIN_APPROX_SIMPLE、CHAIN_APPROX_TC89_L1。
+
+**CHAIN_APPROX_NONE**：表示将所有的轮廓点都进行存储；
+
+**CHAIN_APPROX_SIMPLE**：表示只存储有用的点，比如直线只存储起点和终点，四边形只存储四个顶点，默认使用这个方法；CHAIN_APPROX_TC89_L1表示使用Teh-Chin链逼近算法进行轮廓逼近。这种方法使用的是Teh-Chin链码，它是一种边缘检测算法，可以对轮廓进行逼近，减少轮廓中的冗余点，从而更加准确地表示轮廓的形状。
+
+**CHAIN_APPROX_TC89_L1**：是一种较为精确的轮廓逼近方法，适用于需要较高精度的轮廓表示的情况。
+
+#### 1.3参数总结
+
+**对于mode和method这两个参数来说，一般使用RETR_EXTERNAL和CHAIN_APPROX_SIMPLE这两个选项。**
+
+### 2.绘制轮廓
+
+- 语法
+
+  ```python
+  cv2.drawContours(image, contours, contourIdx, color, thickness)
+  ```
+
+- 参数
+
+  - **image**：原始图像，一般为单通道或三通道的 numpy 数组。
+  - **contours**：包含多个轮廓的列表，每个轮廓本身也是一个由点坐标构成的二维数组（numpy数组）。
+  - **contourIdx**：要绘制的轮廓索引。如果设为 `-1`，则会绘制所有轮廓。
+  - **color**：绘制轮廓的颜色，可以是 BGR 值或者是灰度值（对于灰度图像）。
+  - **thickness**：轮廓线的宽度，如果是正数，则画实线；如果是负数，则填充轮廓内的区域。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('pic.jpg')
+  
+  pic_gray=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)
+  
+  ret,pic_binary=cv2.threshold(pic_gray,127,255,cv2.THRESH_BINARY)
+  
+  contours,hierarchy = cv2.findContours(pic_binary,mode=cv2.RETR_EXTERNAL,method=cv2.CHAIN_APPROX_SIMPLE)
+  
+  countour_pic=cv2.drawContours(pic,contours,-1,color=(0,0,255),thickness=1)
+  
+  cv2.imshow('contour',pic)
+  
+  cv2.waitKey(0)
+  ```
+
+  | ![pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/pic.jpg) | ![counter](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/counter.png) |
+  | ------------------------------------------------- | --------------------------------------------------------- |
+  | 原图                                              | 轮廓图                                                    |
+
+  
+
 
 
 

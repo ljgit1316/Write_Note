@@ -3017,7 +3017,7 @@ cv2.waitKey(0)
 
 直方图是对数据进行统计的一种方法，并且将统计值组织到一系列实现定义好的 bin 当中。其中， bin 为直方图中经常用到的一个概念，可以译为 “直条” 或 “组距”，其数值是从数据中计算出的特征统计量，这些数据可以是诸如梯度、方向、色彩或任何其他特征。
 
-![d00925fd2a51c6513df3a9585d7bbcee](E:\AI-Study\python学习\opencv笔记\opencv笔记\20直方图均衡化\media\d00925fd2a51c6513df3a9585d7bbcee.png)
+![d00925fd2a51c6513df3a9585d7bbcee](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/fang_tu.png)
 
 ### 2.绘制直方图
 

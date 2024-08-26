@@ -2697,6 +2697,964 @@ method参数有三个选项：CHAIN_APPROX_NONE、CHAIN_APPROX_SIMPLE、CHAIN_AP
   | ![pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/pic.jpg) | ![counter](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/counter.png) |
   | ------------------------------------------------- | --------------------------------------------------------- |
   | 原图                                              | 轮廓图                                                    |
+## 凸包特征检测
+
+### 1.获取凸包点
+
+- 定义
+
+  ​		凸包其实就是将一张图片中物体的最外层的点连接起来构成的凸多边形，它能包含物体中所有的内容。
+
+- 检测流程
+
+  假设有如下点图：
+
+  ![tu_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_1.png)
+
+  经过凸包检测并绘制之后，其结果应该如下图所示：
+
+  ![tu_5](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_5.png)
+
+  第一步，找出处于最左边和最右边的点：
+
+  ![tu_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_2.png)
+
+  第二步，将这两个点连接，并将点集分为上半区和下半区，我们以上半区为例：
+
+  ![tu_3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_3.png)
+
+  第三步，找到离直线最远的点，由于直线有两个点的坐标，直线方程是已知的，处于直线上方的点的坐标也是已知的，根据点到直线距离公式来计算哪个点到直线的距离最远。设直线方程Ax+By+C=0,点(x0,y0),点到直线的距离公式为：
+
+  ![N1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/N1.png)
+
+  得到距离这条线最远的点，将其与左右两点连起来，并分别命名为y1和y2，如下图所示：
+
+  ![tu_4](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_4.png)
+
+  分别根据点的坐标求出y1和y2的直线方程，之后将**上半区的每个点**的坐标带入下面公式中，得到所有点的d值：
+
+  ![N1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/N1.png)
+
+  **当d=0时**，表明该点在直线上；
+
+  **当d\>0时，**表明点在直线的上方，在这里就代表该点在上图所围成的三角形的外面，也就意味着该三角形并没有完全包围住上半区的所有点，需要重新寻找凸包点；
+
+  **当d\<0时**，表明点在直线的下方，在这里就代表该点在上图所围成的三角形的里面，也就代表着这类点就不用管了。
+
+​		当出现**d\>0**时，我们需要将出现这种结果的两个计算对象：**某点和y1或y2这条线标记**，重新计算出现这种现象的点集到y1或y2的距离来获取新的凸包点的坐标，在这个例子中也就是如下图所示的点和y2这条直线：
+
+![tu_4](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_4.png)
+
+​		本例子中**只有这一个点**在这个三角形之外，所以毫无疑问的它就是一个凸包点，因此直接将它与y2直线的两个端点相连即可。
+
+​		当有很多点在y2直线外时，就需要计算每个点到y2的距离，然后**找到离得最远**的点与y2构建三角形，并重新计算是否还有点在该三角形之外，如果没有，那么这个点就是新的凸包点，如果有，那就需要重复上面的步骤，直到所有的点都能被包围住，那么构建直线的点就是凸包点。
+
+​		下半区寻找凸包点的思路与此一模一样，只不过是需要筛选d\<0（也就是点在直线的下方）的点，并重新构建三角形，寻找新的凸包点。
+
+​		对于彩色图像，我们需要将其转换为二值图像，并使用轮廓检测技术来获取轮廓边界的点的坐标。然后，我们才能进行上述寻找凸包点的过程。因此，在处理图像时，我们需要将彩色图像转换为二值图像，并通过轮廓检测技术来获取轮廓边界的点的坐标，然后才能进行凸包点的寻找过程。
+
+- 语法
+
+  **cv2.convexHull(points,hull=None,clockwise=False,returnPoints=True)**
+
+- 参数
+
+  - `points`：输入参数，图像的轮廓
+  - `hull`（可选）：输出参数，用于存储计算得到的凸包顶点序列，如果不指定，则会创建一个新的数组。
+  - `clockwise`（可选）：布尔值，如果为True，则计算顺时针方向的凸包，否则默认计算逆时针方向的凸包。
+  - `returnPoints`（可选）：布尔值，如果为True（默认），则函数返回的是原始点集中的点构成的凸包顶点序列；如果为False，则返回的是凸包顶点对应的边界框内的索引。
+
+### 2.绘制凸包
+
+- 语法
+
+  **cv2.polylines(image, pts, isClosed, color, thickness=1)**
+
+- 参数
+
+  - `image`：要绘制线条的目标图像，它应该是一个OpenCV格式的二维图像数组（如numpy数组）。
+  - `pts`：一个二维 numpy 数组，每个元素是一维数组，代表一个多边形的一系列顶点坐标。
+  - `isClosed`：布尔值,表示是否闭合多边形,如果为 True，会在最后一个顶点和第一个顶点间自动添加一条线段，形成封闭的多边形。
+  - `color`：线条颜色，可以是一个三元组或四元组，分别对应BGR或BGRA通道的颜色值，或者是灰度图像的一个整数值。
+  - `thickness`（可选）：线条宽度，默认值为1。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('tu_pic.png')
+  convex_pic=pic.copy()#深层拷贝，在这张图绘制凸包点
+  pic_gray=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)#转化灰度图
+  _,pic_binary=cv2.threshold(pic_gray,127,255,cv2.THRESH_BINARY)
+  #转化二值图
+  
+  countour,hier=cv2.findContours(pic_binary,mode=cv2.RETR_EXTERNAL,method=cv2.CHAIN_APPROX_SIMPLE)
+  #找到二值图中轮廓数组
+  
+  tu=cv2.convexHull(countour[0])
+  #在二值图的轮廓数组中第一个数组，找到凸包点
+  cv2.polylines(convex_pic,[tu],isClosed=True,color=(0,0,255),thickness=2)#凸包点 需要列表化[tu]
+  #绘制凸包点
+  cv2.imshow('show',convex_pic)
+  cv2.waitKey(0)
+  ```
+
+  | ![tu_pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_pic.png) | ![tu_pic2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/tu_pic2.png) |
+  | ------------------------------------------------- | --------------------------------------------------- |
+  | 原图                                              | 凸包绘制                                            |
+
+## 图像轮廓特征查找
+
+### 1.外接矩形
+
+外接矩形可根据获得到的轮廓坐标中最上、最下、最左、最右的点的坐标来绘制外接矩形，也就是下图中的绿色矩形。
+
+![wai_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/wai_1.png)
+
+```python
+pic=cv2.imread('tu_pic.png')
+pic_copy=pic.copy()
+
+pic_copy_gray=cv2.cvtColor(pic_copy,cv2.COLOR_BGR2GRAY)
+ret,image=pic_copy_gray_two=cv2.threshold(pic_copy_gray,127,255,cv2.THRESH_BINARY)
+
+countour,heric=cv2.findContours(image,mode=cv2.RETR_EXTERNAL,method=cv2.CHAIN_APPROX_SIMPLE)
+
+cv2.drawContours(pic_copy,countour,-1,(0,255,0),2)#绘制轮廓
+
+
+circle_pic=pic_copy.copy()#复制图像画外接矩阵
+for i in countour:
+    x,y,w,h=cv2.boundingRect(i)#索引左上角和右下角坐标
+    # print(x,y,w,h)
+    cv2.rectangle(circle_pic,(x,y),(x+w,y+h),(0,0,255),2)#绘制矩形
+
+cv2.imshow('con',pic_copy)
+cv2.imshow('circle',circle_pic)
+cv2.waitKey(0)
+```
+
+| ![wai_rect](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/wai_rect.png) | ![wai_rect_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/wai_rect_2.png) |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| 轮廓图                                                | 外接矩阵图                                                |
+
+### 2.最小外接矩阵
+
+- 定义
+
+  上图所示的蓝色矩形，寻找最小外接矩形使用的算法叫做旋转卡壳法。
+
+  旋转卡壳法思路：用到了**凸包概念**，凸包就是一个点集的凸多边形，它是这个点集所有点的凸壳，点集中所有的点都处于凸包里，构成凸包的点我们叫做凸包点。而旋转卡壳法就是基于凸包点进行的。
+
+  旋转卡壳法有一个**很重要的前提条件**：对于多边形P的一个外接矩形存在一条边与原多边形的边共线。
+
+- 原理
+
+  根据前提条件，凸多边形的最小外接矩形与凸多边形的某条边是共线的。因此我们**只需要以其中的一条边为起始边**，然后**按照逆时针方向计算每个凸包点**与起始边的距离，并将距离最大的点记录下来。
+
+  ![min_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/min_1.png)
+
+  我们首先以a、b两点为起始边，并计算出e点离起始边最远，那么e到起始边的距离就是一个矩形的高度，因此我们只需要再找出矩形的宽度即可。对于矩形的最右边，以向量ab为基准，然后分别计算**凸包点在向量ab上的投影的长度**，**投影最长的凸包点所在的垂直于起始边的直线**就是矩形最右边所在的直线。
+
+  ![min_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/min_2.png)
+
+  d点就是在向量ab上投影最长的凸包点，那么通过d点垂直于直线ab的直线就是矩形的右边界所在的直线。矩形的左边界的也是这么计算的，不同的是使用的向量不是ab而是ba。 
+
+  ![min_3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/min_3.png)
+
+  h点垂直于ab的直线就是以ab为起始边所计算出来的矩形所在的左边界所在的直线。其中矩形的高就是e点到直线ab的距离，矩形的宽是h点在向量上ba的投影加上d点在向量ab上的投影减去ab的长度，即：
+
+  ![N2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/N2.png)
+
+  
+
+  ![min_4](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/min_4.png)
+
+  综上，我们就有了以ab为起始边所构成的外接矩形的宽和高，这样就**可以得到该矩形的面积**。然后**再以bc为起始边，并计算其外接矩形的面积。也就是说凸多边形有几个边，就要构建几次外接矩形，**然后**找到其中面积最小**的矩形作为该凸多边形的最小外接矩形。
+
+- 语法
+
+  使用**cv2.minAreaRect()**来获取最小外接矩形，该函数只需要输入一个参数，就是凸包点的坐标，然后会返回最小外接矩形的中心点坐标、宽高以及旋转角度。通过返回的内容信息，即可绘制凸多边形的的最小外接矩形。
+
+  ```python
+  rect = cv2.minAreaRect(cnt)
+  
+  传入的cnt参数为contours中的轮廓,可以遍历contours中的所有轮廓,然后计算出每个轮廓的小面积外接矩形
+  rect 是计算轮廓最小面积外接矩形
+  rect 结构通常包含中心点坐标 `(x, y)`、宽度 `width`、高度 `height` 和旋转角度 `angle`
+  ```
+
+  ```python
+  box = np.int0(cv2.boxPoints(rect))
+  
+  cv2.boxPoints(rect)返回 是一个形状为 4行2列的数组，每一行代表一个点的坐标（x, y），顺序按照逆时针或顺时针方向排列
+  
+  将最小外接矩形转换为边界框的四个角点，并转换为整数坐标
+  ```
+
+  ```python
+  cv2.drawContours(image, contours, contourIdx, color, thickness)
+  - **image**：原图像，一般为 numpy 数组，通常为灰度或彩色图像。
+  - **contours**：一个包含多个轮廓的列表,可以用上一个api得到的 [box] 
+  - **contourIdx**：要绘制的轮廓索引。如果设置为 `-1`，则绘制所有轮廓。
+  - **color**：轮廓的颜色，可以是 BGR 颜色格式的三元组，例如 `(0, 0, 255)` 表示红色。
+  - **thickness**：轮廓线的粗细，如果是正数，则绘制实线；如果是 0，则绘制轮廓点；如果是负数，则填充轮廓内部区域。
+  ```
+
+- 实例
+
+  ```python
+  pic=cv2.imread('tu_pic.png')
+  pic_copy=pic.copy()#绘制轮廓图层
+  pic_min_contor=pic.copy()#绘制最小矩形图层
+  
+  pic_gray=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)#灰度化
+  ret,image=pic_gray_two=cv2.threshold(pic_gray,127,255,cv2.THRESH_BINARY)#二值化
+  contour,heric=cv2.findContours(image,mode=cv2.RETR_EXTERNAL,method=cv2.CHAIN_APPROX_SIMPLE)#找出轮廓点
+  
+  cv2.drawContours(pic_copy, contour, -1, (255, 0, 0), 2)#绘制轮廓
+  
+  for cnt in contour:
+      rect=cv2.minAreaRect(cnt)
+      box=np.int0(cv2.boxPoints(rect))
+      cv2.drawContours(pic_min_contor,[box],-1,(0,0,255),2)
+  """
+  传入的cnt参数为contours中的轮廓,可以遍历contours中的所有轮廓,然后计算出每个轮廓的小面积外接矩形
+  rect 结构通常包含中心点坐标 `(x, y)`、宽度 `width`、高度 `height` 和旋转角度 `angle`
+  
+  
+  cv2.boxPoints(rect)返回 是一个形状为 4行2列的数组，每一行代表一个点的坐标（x, y），顺序按照逆时针或顺时针方向排列
+  
+  将最小外接矩形转换为边界框的四个角点，并转换为整数坐标
+  """
+  cv2.imshow('ccc',pic_min_contor)
+  cv2.waitKey(0)
+  ```
+
+### 3.最小外接圆
+
+- 定义
+
+  最小外接圆使用的算法是Welzl算法。Welzl算法基于一个定理：**希尔伯特圆定理**表明，对于平面上的任意三个不在同一直线上的点，存在一个唯一的圆同时通过这三个点，且该圆是最小面积的圆（即包含这三个点的圆中半径最小的圆，也称为最小覆盖圆）。
+
+  进一步推广到任意 n 个不在同一圆上的点，总存在一个唯一的最小覆盖圆包含这 n 个点。
+
+  若已经存在平面上互不共线（或共圆）的 n 个点，并确定了它们的最小覆盖圆，那么添加第 n+1 个点，并且要求这个点不在原来的最小覆盖圆内（即在圆外），为了使新的包含 n+1 个点的最小覆盖圆的半径增大，**新加入的点必须位于由原 n 个点确定的最小覆盖圆的边界上（即圆周上）**。
+
+  有了这个定理，就可以先取3个点建立一个圆（不共线的三个点即可确定一个圆，如果共线就取距离最远的两个点作为直径建立圆），然后遍历剩下的所有点，对于遍历到的点P来说：
+
+  如果该点在圆内，那么最小覆盖圆不变。
+
+  如果该点在圆外，根据上述定理，该点一定在想要求得的最小覆盖圆的圆周上，又因为三个点才能确定一个圆，所以需要枚举P点之前的点来找其余的两个点。当找到与P点组成的圆能够将所有点都包含在圆内或圆上，该圆就是这些点的最小外接圆。
+
+  ![circle_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/circle_1.png)
+
+- 语法
+
+  使用cv2.minEnclosingCircle()来获取最小外接圆，该函数只需要输入一个参数，就是要绘制最小外接圆的点集的坐标，然后会返回最小外接圆的圆心坐标与半径。通过该函数返回的内容信息即可绘制某点集的最小外接圆。
+
+  ```python
+  **cv2.minEnclosingCircle(points) -> (center, radius)**
+  ```
+
+  - `points`：输入参数图片轮廓数据
+
+  返回值：
+
+  - `center`：一个包含圆心坐标的二元组 `(x, y)`。
+  - `radius`：浮点数类型，表示计算得到的最小覆盖圆的半径。
+
+  ```
+  **cv2.circle(img, center, radius, color, thickness)**
+  ```
+
+  - `img`：输入图像，通常是一个numpy数组，代表要绘制圆形的图像。
+  - `center`：一个二元组 `(x, y)`，表示圆心的坐标位置。
+  - `radius`：整型或浮点型数值，表示圆的半径长度。
+  - `color`：颜色标识，可以是BGR格式的三元组 `(B, G, R)`，例如 `(255, 0, 0)` 表示红色。
+  - `thickness`：整数，表示圆边框的宽度。如果设置为 `-1`，则会填充整个圆。
+
+- 实例
+
+  ```python
+  pic=cv2.imread('tu_pic.png')
+  pic_copy=pic.copy()#绘制轮廓
+  pic_min_circle=pic.copy()#绘制最小外接圆
+  
+  pic_gray=cv2.cvtColor(pic,cv2.COLOR_BGR2GRAY)
+  ret,image=pic_gray_two=cv2.threshold(pic_gray,127,255,cv2.THRESH_BINARY)
+  contour,heric=cv2.findContours(image,mode=cv2.RETR_EXTERNAL,method=cv2.CHAIN_APPROX_SIMPLE)
+  cv2.drawContours(pic_copy, contour, -1, (255, 0, 0), 2)
+  for cnt in contour:
+      (x,y),r=cv2.minEnclosingCircle(cnt)
+      (x,y,r)=np.int0((x,y,r))#取整
+      cv2.circle(pic_min_circle,(x,y),r,(0,255,0),2)
+  """
+  - `points`：输入参数图片轮廓数据
+  
+  返回值：
+  
+  - `center`：一个包含圆心坐标的二元组 `(x, y)`。
+  - `radius`：浮点数类型，表示计算得到的最小覆盖圆的半径。
+  
+  
+  - `img`：输入图像，通常是一个numpy数组，代表要绘制圆形的图像。
+  - `center`：一个二元组 `(x, y)`，表示圆心的坐标位置。
+  - `radius`：整型或浮点型数值，表示圆的半径长度。
+  - `color`：颜色标识，可以是BGR格式的三元组 `(B, G, R)`，例如 `(255, 0, 0)` 表示红色。
+  - `thickness`：整数，表示圆边框的宽度。如果设置为 `-1`，则会填充整个圆。
+  """
+  cv2.imshow('ccc',pic_min_circle)
+  cv2.waitKey(0)
+  ```
+
+  | ![wai_rect](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/wai_rect.png) | ![min_circle](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/min_circle.png) |
+  | ----------------------------------------------------- | --------------------------------------------------------- |
+  | 轮廓图                                                | 最小外接圆                                                |
+
+## 直方图均衡化
+
+### 1.直方图定义
+
+直方图是对数据进行统计的一种方法，并且将统计值组织到一系列实现定义好的 bin 当中。其中， bin 为直方图中经常用到的一个概念，可以译为 “直条” 或 “组距”，其数值是从数据中计算出的特征统计量，这些数据可以是诸如梯度、方向、色彩或任何其他特征。
+
+![d00925fd2a51c6513df3a9585d7bbcee](E:\AI-Study\python学习\opencv笔记\opencv笔记\20直方图均衡化\media\d00925fd2a51c6513df3a9585d7bbcee.png)
+
+### 2.绘制直方图
+
+- 语法
+
+  以像素值为横坐标，像素值的个数为纵坐标绘制一个统计图。
+
+  ```python
+  hist=cv2.calcHist(images, channels, mask, histSize, ranges)
+  ```
+
+  - `images`：输入图像列表，可以是一幅或多幅图像（通常是灰度图像或者彩色图像的各个通道）。
+  - `channels`：一个包含整数的列表，指示在每个图像上计算直方图的通道编号。如果输入图像是灰度图，它的值就是 [0]；如果是彩色图像的话，传入的参数可以是 [0]，[1]，[2] 它们分别对应着通道 B，G，R。 
+  - `mask`（可选）：一个与输入图像尺寸相同的二值掩模图像，其中非零元素标记了参与直方图计算的区域,None为全部计算。
+  - `histSize`：一个整数列表，也就是直方图的区间个数(BIN 的数目)。用中括号括起来，例如：[256]。 
+  - `ranges`：每维数据的取值范围，它是一个二维列表，每一维对应一个通道的最小值和最大值，例如对灰度图像可能是 `[0, 256]`。
+
+  返回值hist 是一个长度为255的数组，数组中的每个值表示图像中对应灰度等级的像素计数
+
+  
+
+  获取直方图的最小值、最大值及其对应最小值的位置索引、最大值的位置索引
+
+  ```python
+   minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(hist)
+  ```
+
+  
+
+  ```
+  cv2.line(img, pt1, pt2, color, thickness)
+  ```
+
+  - **img**：原始图像，即要在上面画线的numpy数组（一般为uint8类型）。
+  - **pt1** 和 **pt2**：分别为线段的起点和终点坐标，它们都是元组类型，例如 `(x1, y1)` 和 `(x2, y2)` 分别代表线段两端的横纵坐标。
+  - **color**：线段的颜色，通常是一个包含三个元素的元组 `(B, G, R)` 表示BGR色彩空间的像素值，也可以是灰度图像的一个整数值。
+  - **thickness**：线段的宽度，默认值是1，如果设置为负数，则线宽会被填充。
+
+- 实例
+
+  ```python
+  def calcAndDrawHist(image, color):
+      hist=cv2.calcHist(image,[1],None,[255],[0,256])
+      #统计彩色图像中二号通道所有像素中0-255出现的频率
+      minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(hist)
+      histImg=np.zeros([256,256,3],np.uint8)
+      #初始化一个新图像，尺寸为256x256，用于绘制直方图，且每个像素点初始值为黑色（三通道均为0）
+      hpt=int(0.9*256)
+      for h in range(255):
+          intensity=int(hist[h]*hpt/maxVal)
+          cv2.line(histImg,(h,256),(h,256-intensity),color)
+      return histImg
+  
+  pic=cv2.imread('pic.jpg')
+  pic_jpg=calcAndDrawHist(pic,(255,0,0))
+  cv2.imshow('pic_jpg',pic_jpg)
+  cv2.waitKey(0)
+  ```
+
+  | ![pic](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/pic.jpg) | ![color_pus](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/color_pus.png) |
+  | ------------------------------------------- | ------------------------------------------------------- |
+  | 原图                                        | 通道2色域值分布                                         |
+
+  
+
+### 3.直方图均衡化
+
+#### 3.1自适应直方图均衡化
+
+- 定义
+
+  自适应直方图均衡化（Adaptive Histogram Equalization, AHE），通过调整图像像素值的分布，使得图像的对比度和亮度得到改善。
+
+- 过程
+
+  ![straingt_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straingt_2.png)
+
+  设有一个3\*3的图像，其灰度图的像素值如上图所示，现在我们要对其进行直方图均衡化，首先就是统计其每个像素值的个数、比例以及其累计比例。
+
+  ![straingt_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straingt_1.png)
+
+  接下来我们就要进行计算，就是将要缩放的范围（通常是缩放到0-255，所以就是255-0）乘以累计比例，得到新的像素值，并将新的像素值放到对应的位置上，**比如像素值为50的像素点，将其累计比例乘以255，也就是0.33乘以255得到84.15，取整后得到84，并将84放在原图像中像素值为50的地方，像素值为100、210、255的计算过程类似**，最终会得到如下图所示的结果，这样就完成了最基本的直方图均衡化的过程。
+
+  ![straingt_2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straingt_2.png)
+
+  ![straingt_3](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straingt_3.png)
+
+- 语法
+
+  ```python
+  #imgGray为需要直方图均衡化的灰度图返回值为处理后的图像
+  **dst = cv.equalizeHist(imgGray)**
+  ```
+
+- 实例
+
+  ```python
+  import  cv2
+  import numpy as np
+  img=cv2.imread("./zhifang.png",cv2.IMREAD_GRAYSCALE)
+  cv2.imshow("img",img)
+  cv2.imshow("img2",cv2.equalizeHist(img))
+  cv2.waitKey(0)
+  ```
+
+  该方法适用于图像的灰度分布不均匀，且灰度分布集中在更窄的范围，图像的细节不够清晰且对比度较低的情况，然而，传统的直方图均衡化方法会引入噪声，并导致图像中出现过度增强的区域。这是因为直方图均衡化方法没有考虑到图像的局部特征和全局对比度的差异。
+
+  ![straight_5](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straight_5.png)
+
+#### 3.对比度受限的自适应直方图均衡图
+
+- 作用
+
+  很明显，因为全局调整亮度和对比度的原因，脸部太亮，大部分细节都丢失了。自适应均衡化就是用来解决这一问题的：它在每一个小区域内（默认8×8）进行直方图均衡化。当然，如果有噪点的话，噪点会被放大，需要对小区域内的对比度进行了限制，所以这个算法全称叫：**对比度受限的自适应直方图均衡化**
+
+- 步骤
+
+  1. **图像分块（Tiling）**：
+     - 图像首先被划分为多个不重叠的小块（tiles）。这样做的目的是因为在全局直方图均衡化中，单一的直方图无法反映图像各个局部区域的差异性。通过局部处理，AHE能够更好地适应图像内部的不同光照和对比度特性。（tiles 的 大小默认是 8x8）
+  2. **计算子区域直方图**：
+     - 对于每个小块，独立计算其内部像素的灰度直方图。直方图反映了该区域内像素值的分布情况。
+  3. **子区域直方图均衡化**：
+     - 对每个小块的直方图执行直方图均衡化操作。这涉及重新分配像素值，以便在整个小块内更均匀地分布。均衡化过程会增加低频像素的数量，减少高频像素的数量，从而提高整个小块的对比度。
+  4. **对比度限制（Contrast Limiting）**：
+     - 如果有噪声的话，噪声会被放大。为了防止过大的对比度增强导致噪声放大，出现了限制对比度自适应直方图均衡化（CLAHE）。CLAHE会在直方图均衡化过程中引入一个对比度限制参数。当某一小块的直方图在均衡化后出现极端值时，会对直方图进行平滑处理（使用线性或非线性的钳制函数），确保对比度增强在一个合理的范围内。
+  5. **重采样和邻域像素融合**：
+     - 由于小块之间是不重叠的，直接拼接经过均衡化处理的小块会产生明显的边界效应。因此，在CLAHE中通常采用重采样技术来消除这种效应，比如通过双线性插值将相邻小块的均衡化结果进行平滑过渡，使最终图像看起来更为自然和平滑。
+  6. **合成输出图像**：
+     - 将所有小块均衡化后的结果整合在一起，得到最终的自适应直方图均衡化后的图像。
+
+- 语法
+
+  ```python
+  clahe =cv2.createCLAHE(clipLimit=None,tileGridSize=None)
+  """
+  - clipLimit（可选）：对比度限制参数，用于控制直方图均衡化过程中对比度增强的程度。如果设置一个大于1的值（如2.0或4.0），CLAHE会限制对比度增强的最大程度，避免过度放大噪声。如果不设置，OpenCV会使用一个默认值。
+  - tileGridSize（可选）：图像分块的大小，通常是一个包含两个整数的元组，如`(8, 8)`，表示将图像划分成8x8的小块进行独立的直方图均衡化处理。分块大小的选择会影响到CLAHE的效果以及处理速度。
+  
+  """
+  
+  #创建CLAHE对象后，可以使用 `.apply()` 方法对图像进行CLAHE处理：
+  
+  img=clahe.apply(image)
+  """
+  - image:要均衡化的图像。
+  - img均衡后的图像
+  """
+  ```
+
+- 实例
+
+  ```python
+  import cv2
+  import numpy as np
+  def calcAndDrawHist(image, color):
+      hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+      minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(hist)
+      histImg = np.zeros([256, 256, 3], np.uint8)
+      hpt = int(0.9 * 256)
+      for h in range(256):
+          intensity = int(hist[h] * hpt / maxVal)
+          cv2.line(histImg, (h, 256), (h, 256 - intensity), color)
+      return histImg
+  if __name__ == "__main__":
+      path = "./zhifang.png"
+      image_np = cv2.imread(path)
+      color = {"red": (0, 0, 255), "blue": (255, 0, 0), "green": (0, 255, 0)}
+      # 灰度
+      image_np_gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+      # 绘制
+      hist_image = calcAndDrawHist(image_np_gray, color["blue"])
+      # 普通的直方图均衡化
+      equ_hist_image_np = cv2.equalizeHist(image_np_gray)
+      equ_hist_image = calcAndDrawHist(equ_hist_image_np, color["blue"])
+      #自适应直方图均衡化
+      clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(8, 8))
+      equ_hist_image_np = clahe.apply(image_np_gray)
+      # 返回处理正确后的内容
+      cv2.imshow("image_np_gray", image_np_gray)
+      cv2.imshow("hist_image", hist_image)
+      cv2.imshow("equ_hist_image_np", equ_hist_image_np)
+      cv2.imshow("equ_hist_image", equ_hist_image)
+      cv2.waitKey(0)
+  ```
+
+  ![straight_4](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/straight_4.png)
+
+## 模板匹配
+
+### 1.模板匹配
+
+模板匹配就是用模板图（通常是一个小图）在目标图像（通常是一个比模板图大的图片）中不断的滑动比较，通过某种比较方法来判断是否匹配成功。
+
+![model](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/model.png)
+
+## 2.匹配方法
+
+- 语法
+
+  ```python
+  res=cv2.matchTemplate(image, templ, method)
+  ```
+
+- 参数
+
+  - image：原图像，这是一个灰度图像或彩色图像（在这种情况下，匹配将在每个通道上独立进行）。
+
+  - templ：模板图像，也是灰度图像或与原图像相同通道数的彩色图像。
+
+  - method：匹配方法，可以是以下之一：
+
+    - cv2.TM_CCOEFF
+    - cv2.TM_CCOEFF_NORMED
+    - cv2.TM_CCORR
+    - cv2.TM_CCORR_NORMED
+    - cv2.TM_SQDIFF
+    - cv2.TM_SQDIFF_NORMED
+    - 这些方法决定了如何度量模板图像与原图像子窗口之间的相似度。
+
+  - 返回值res
+
+    函数在完成图像模板匹配后返回一个结果矩阵，这个矩阵的大小与原图像相同。矩阵的每个元素表示原图像中相应位置与模板图像匹配的相似度。
+
+    匹配方法不同，返回矩阵的值的含义也会有所区别。以下是几种常用的匹配方法及其返回值含义：
+
+    1. `cv2.TM_SQDIFF` 或 `cv2.TM_SQDIFF_NORMED`：
+
+       返回值越接近0，表示匹配程度越好。最小值对应的最佳匹配位置。
+
+    2. `cv2.TM_CCORR` 或 `cv2.TM_CCORR_NORMED`：
+
+       返回值越大，表示匹配程度越好。最大值对应的最佳匹配位置。
+
+    3. `cv2.TM_CCOEFF` 或 `cv2.TM_CCOEFF_NORMED`：
+
+       返回值越大，表示匹配程度越好。最大值对应的最佳匹配位置。
+
+#### 2.1平方差匹配
+
+```
+cv2.TM_SQDIFF
+```
+
+以模板图与目标图所对应的像素值使用平方差公式来计算，其结果越小，代表匹配程度越高，计算过程举例如下。
+
+注意：模板匹配过程皆不需要边缘填,直接从目标图像的左上角开始计算。
+
+![ping_match](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/ping_match.png)
+
+#### 2.2归一化平方差匹配
+
+```
+cv2.TM_SQDIFF_NORMED
+```
+
+与平方差匹配类似，只不过需要将值统一到0到1，计算结果越小，代表匹配程度越高，计算过程举例如下。
+
+![gui_ping_match](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gui_ping_match.png)
+
+#### 2.3相关匹配
+
+```
+cv2.TM_CCORR
+```
+
+使用对应像素的乘积进行匹配，乘积的结果越大其匹配程度越高，计算过程举例如下。
+
+![relative](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/relative.png)
+
+#### 2.4归一化相关匹配
+
+```
+cv2.TM_CCORR_NORMED
+```
+
+与相关匹配类似，只不过是将其值统一到0到1之间，值越大，代表匹配程度越高，计算过程举例如下。
+
+![gui_relative](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gui_relative.png)
+
+#### 2.5相关系数匹配
+
+```
+cv2.TM_CCOEFF
+```
+
+需要先计算模板与目标图像的均值，然后通过每个像素与均值之间的差的乘积再求和来表示其匹配程度，1表示完美的匹配，-1表示最差的匹配，计算过程举例如下。
+
+![relative_num](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/relative_num.png)
+
+#### 2.6归一化相关系数匹配
+
+```
+cv2.TM_CCOEFF_NORMED
+```
+
+也是将相关系数匹配的结果统一到0到1之间，值越接近1代表匹配程度越高，计算过程举例如下。
+
+![gui_relative_num](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/gui_relative_num.png)
+
+### 3.绘制轮廓
+
+找的目标图像中匹配程度最高的点，我们可以设定一个匹配阈值来筛选出多个匹配程度高的区域。
+
+```python
+**loc=np.where(array > 0.8)** #loc包含array中所有大于0.8的**元素索引**的数组
+
+**zip(*loc)**
+
+x=list([[1,2,3,4,3],[23,4,2,4,2]])
+print(list(zip(*x)))#[(1, 23), (2, 4), (3, 2), (4, 4), (3, 2)]
+```
+
+```python
+import cv2
+import numpy as np
+
+if __name__ == "__main__":
+    path_search = "./game.png"
+    image_np = cv2.imread(path_search)
+    image_np_gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)  # 转为灰度图(原图)
+    path_target = "./temp.png"
+    template = cv2.imread(path_target)
+    template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)  # 转为灰度图(匹配模板)
+    h, w = template_gray.shape[:2]
+    res = cv2.matchTemplate(image_np_gray, template_gray, cv2.TM_CCOEFF_NORMED)  # 模板匹配
+    threshold = 0.8
+    loc = np.where(res >= threshold)  # 匹配程度大于threshold的坐标y,x: 两个列表第一个是所有y,第二个是所有x
+    # print(res,res[loc[0][1],loc[1][1]],res[loc[0][20],loc[1][20]])
+    for pt in zip(*loc):
+        right_bottom = (pt[1] + w, pt[0] + h)
+        cv2.rectangle(image_np, pt[::-1], right_bottom, (0, 0, 255), 2)
+    # 返回处理正确后的内容
+    cv2.imshow("image_np", image_np)
+    cv2.waitKey(0)
+```
+
+## 霍夫变换
+
+### 1.霍夫变换图示
+
+![huofu1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/huofu1.png)
+
+### 2.霍夫直线变换
+
+对于一条直线（不垂直于x轴的直线），都可以用$y=k x+b$来表示，此时，x和y是横纵坐标，k和b是一个固定参数。当我们换一种方式来看待这个式子，我们就可以得到：
+$$
+b=-kx+y
+$$
+此时，以k和b	为横纵坐标，x和y为固定参数，变换如下图所示：
+
+![bianhuan](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/bianhuan.png)
+
+从上图可以看出，在直角坐标系下的一个直线，在变换后的空间中仅仅表示为一点，对于变换后的空间，我们称其为霍夫空间。也就是说，直角坐标系下的一条直线对应了霍夫空间中的一个点。类似的，霍夫空间中的一条直线也对应了直角坐标系中的一个点，如下图所示：
+
+![bianhuan_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/bianhuan_1.png)
+
+那么对于一个二值化后的图形来说，其中的每一个目标像素点（这里假设目标像素点为白色像素点）都对应了霍夫空间的一条直线，当霍夫空间中有两条直线相交时，就代表了直角坐标系中某两个点所构成的直线。而当霍夫空间中有很多条线相交于一点时，说明直角坐标系中有很多点能构成一条直线，也就意味着这些点共线，因此我们就可以通过检测霍夫空间中有最多直线相交的交点来找到直角坐标系中的直线。
+
+然而对于x=1这种直线来说，y已经不存在了，那么就没办法使用上面的方法进行检测了，为了解决这个问题，我们就将直角坐标系转化为极坐标系，然后通过极坐标系与霍夫空间进行相互转化。
+
+![huofu2](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/huofu2.png)
+
+在极坐标系下是一样的，极坐标中的点对于霍夫空间中的线，霍夫空间中的点对应极坐标中的直线。并且此时的霍夫空间不再是以k为横轴、b为纵轴，而是以为θ横轴、ρ(上图中的r)为纵轴。上面的公式中，x、y是直线上某点的横纵坐标（直角坐标系下的横纵坐标），和是极坐标下的坐标，因此我们只要知道某点的x和y的坐标，就可以得到一个关于θ-ρ的表达式，如下图所示：
+
+![hhhh](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/hhhh.png)
+
+根据上图，霍夫空间在极坐标系下，一点可以产生一条三角函数曲线，而多条这样的曲线可能会相交于同一点。因此，我们可以通过设定一个阈值，来检测霍夫空间中的三角函数曲线相交的次数。如果一个交点的三角函数曲线相交次数超过阈值，那么这个交点所代表的直线就可能是我们寻找的目标直线。
+
+- 语法
+
+  ```
+  **lines=cv2.HoughLines(image, rho, theta, threshold)**
+  ```
+
+- 参数
+
+  - `image`：输入图像，通常为二值图像，其中白点表示边缘点，黑点为背景。
+  - `rho`：r的精度，以像素为单位，表示霍夫空间中每一步的距离增量,  值越大，考虑越多的线。
+  - `theta`：角度θ的精度，通常以弧度为单位，表示霍夫空间中每一步的角度增量。值越小，考虑越多的线。
+  - `threshold`：累加数阈值，只有累积投票数超过这个阈值的候选直线才会被返回。
+
+  返回值：`cv2.HoughLines` 函数返回一个二维数组，每一行代表一条直线在霍夫空间中的参数 `(rho, theta)`。
+
+- 代码
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  if __name__ == "__main__":
+      path = "./huofu.png"
+      image_np = cv2.imread(path)
+      image_np_gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)  # 转为灰度图
+      image_edges = cv2.Canny(image_np_gray, 30, 70)  # 进行canny边缘检测
+      # 使用霍夫变换检测直线
+      lines = cv2.HoughLines(image_edges, 0.8, 0.01745, 90)
+      # 遍历并绘制检测到的直线
+      for line in lines:
+          rho, theta = line[0]
+          a = np.cos(theta)
+          b = np.sin(theta)
+          x0 = a * rho
+          y0 = b * rho
+          x1 = int(x0 + 1000 * (-b))#1000是让绘制的直线变长
+          y1 = int(y0 + 1000 * (a))
+          x2 = int(x0 - 1000 * (-b))
+          y2 = int(y0 - 1000 * (a))
+          cv2.line(image_np, (x1, y1), (x2, y2), (0, 0, 255))
+      # 返回处理正确后的内容
+      cv2.imshow("image_np", image_np)
+      cv2.waitKey(0)
+  ```
+
+### 3.统计概率霍夫直线变换
+
+- 定义
+
+  前面的方法又称为**标准霍夫变换**，它会计算图像中的每一个点，计算量比较大，另外它得到的是整一条线（r和θ），并不知道原图中直线的端点。所以提出了**统计概率霍夫直线变换**(Probabilistic Hough Transform)，是一种改进的霍夫变换，它在获取到直线之后，会检测原图中在该直线上的点，并获取到两侧的端点坐标，然后通过两个点的坐标来计算该直线的长度，通过直线长度与最短长度阈值的比较来决定该直线要不要被保留。
+
+- 语法
+
+  ```
+  **lines=cv2.HoughLinesP(image, rho, theta, threshold, lines=None, minLineLength=0, maxLineGap=0)**
+  ```
+
+- 参数
+
+  - `image`：输入图像，通常为二值图像，其中白点表示边缘点，黑点为背景。
+  - `rho`：极径分辨率，以像素为单位，表示极坐标系中的距离分辨率。
+  - `theta`：极角分辨率，以弧度为单位，表示极坐标系中角度的分辨率。
+  - `threshold`：阈值，用于过滤掉弱检测结果，只有累计投票数超过这个阈值的直线才会被返回。
+  - `lines`（可选）：一个可初始化的输出数组，用于存储检测到的直线参数。
+  - `minLineLength`（可选）：最短长度阈值，比这个长度短的线会被排除。
+  - `maxLineGap`（可选）：同一直线两点之间的最大距离。当霍夫变换检测到一系列接近直角的线段时，这些线段可能是同一直线的不同部分。`maxLineGap`参数指定了在考虑这些线段属于同一直线时，它们之间最大可接受的像素间隔。
+    - 如果`maxLineGap`设置得较小，那么只有相邻且间距很小的线段才会被连接起来，这可能导致检测到的直线数量较多，但更准确地反映了图像中的局部直线结构。
+    - 如果`maxLineGap`设置得较大，则线段间的间距可以更大，这样可能会合并更多的局部线段成为更长的直线，但有可能会将原本不属于同一直线的线段误连接起来。
+
+  返回值lines：`cv2.HoughLinesP` 函数返回一个二维数组，每个元素是一个包含4个元素的数组，分别表示每条直线的起始点和结束点在图像中的坐标（x1, y1, x2, y2）。
+
+- 代码
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  if __name__ == "__main__":
+      path = "./huofu.png"
+      image_np = cv2.imread(path)
+      image_np_gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)  # 转为灰度图
+      image_edges = cv2.Canny(image_np_gray, 30, 70)  # 进行canny边缘检测
+      # 统计概率霍夫直线变换
+      lines = cv2.HoughLinesP(image_edges, 0.8, 0.01745, 90, minLineLength=50, maxLineGap=10)
+      # 遍历并绘制检测到的直线
+      for line in lines:
+          x1, y1, x2, y2 = line[0]
+          cv2.line(image_np, (x1, y1), (x2, y2), (0, 0, 255), 1, lineType=cv2.LINE_AA)
+      # 返回处理正确后的内容
+      cv2.imshow("image_np", image_np)
+      cv2.waitKey(0)
+  ```
+
+### 4.霍夫圆变换
+
+- 定义
+
+  霍夫圆变换跟直线变换类似，它可以从图像中找出潜在的圆形结构，并返回它们的中心坐标和半径。只不过线是用(r,θ)表示，圆是用(x_center,y_center,r)来表示，从二维变成了三维，数据量变大了很多；所以一般使用霍夫梯度法减少计算量。
+
+- 语法
+
+  ```
+  circles=cv2.HoughCircles(image, method, dp, minDist, param1, param2)
+  ```
+
+- 参数
+
+  - `image`：输入图像，通常是灰度图像。
+
+  - `method`：使用的霍夫变换方法:霍夫梯度法，可以是 `cv2.HOUGH_GRADIENT`，这是唯一在OpenCV中用于圆检测的方法。
+
+  - `dp`：累加器分辨率与输入图像分辨率之间的降采样比率，用于加速运算但不影响准确性。设置为1表示霍夫梯度法中累加器图像的分辨率与原图一致
+
+  - `minDist`：检测到的圆心之间的最小允许距离，以像素为单位。在霍夫变换检测圆的过程中，可能会检测到许多潜在的圆心。`minDist` 参数就是为了过滤掉过于接近的圆检测结果，避免检测结果过于密集。当你设置一个较小的 `minDist` 值时，算法会尝试找出尽可能多的圆，即使是彼此靠得很近的圆也可能都被检测出来。相反，当你设置一个较大的 `minDist` 值时，算法会倾向于只检测那些彼此间存在一定距离的独立的圆。
+
+    例如，如果你设置 `minDist` 很小，可能在真实图像中存在的一个大圆旁边的一些噪声点会被误判为多个小圆；而如果设置 `minDist` 较大，则可以排除这种情况，只保留明显分离的圆的检测结果。
+
+    
+
+  - `param1` 和 `param2`：这两个参数是在使用 `cv2.HOUGH_GRADIENT` 方法时的特定参数，分别为：
+
+    - `param1`(可选)：阈值1，决定边缘强度的阈值。
+
+    - `param2`：阈值2，控制圆心识别的精确度。较大的该值会使得检测更严格的圆。`param2` 通常被称为圆心累积概率的阈值。在使用霍夫梯度方法时，`param2` 设置的是累加器阈值，它决定了哪些候选圆点集合被认为是有效的圆。较高的 `param2` 值意味着对圆的检测更严格，只有在累加器中积累了足够高的响应值才认为是真实的圆；较低的 `param2` 值则会降低检测的门槛，可能会检测到更多潜在的圆，但也可能包含更多的误检结果。
+
+      举个例子，如果你将 `param2` 设置得较高，那么算法只会返回那些边缘强烈符合圆形特征且周围有足够的支持像素的圆；而如果设置得较低，即使边缘特征不是很强烈，只要有一些证据支持就可能将其视为一个圆。
+
+  返回值：`cv2.HoughCircles` 返回一个二维numpy数组，包含了所有满足条件的圆的参数。
+
+- 代码
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  if __name__ == "__main__":
+      path = "./huofu.png"
+      image_np = cv2.imread(path)
+      image_np_gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)  # 转为灰度图
+      image_edges = cv2.Canny(image_np_gray, 30, 70)  # 进行canny边缘检测
+      # 霍夫圆变换
+      circles = cv2.HoughCircles(image_edges, cv2.HOUGH_GRADIENT, 1, 20, param2=30)
+      circles = np.int_(np.around(circles))
+      # 将检测的圆画出来
+      for i in circles[0, :]:
+          cv2.circle(image_np, (i[0], i[1]), i[2], (0, 255, 0), 2)  # 画出外圆
+          cv2.circle(image_np, (i[0], i[1]), 2, (0, 0, 255), 3)  # 画出圆心
+      # 返回处理正确后的内容
+      cv2.imshow("image_np", image_np)
+      cv2.waitKey(0)
+  ```
+
+## 图像亮度变换
+
+### 1.亮度变换
+
+对比度调整：图像暗处像素强度变低，图像亮处像素强度变高，从而拉大中间某个区域范围的显示精度。
+
+亮度调整：图像像素强度整体变高或者变低。
+
+![light_1](https://github.com/ljgit1316/Picture_resource/blob/main/OpenCv_Pic/light_1.png)
+
+上图中，(a)把亮度调高，就是图片中的所有像素值加上了一个固定值；(b)把亮度调低，就是图片中的所有像素值减去了一个固定值；(c)增大像素对比度（白的地方更白，黑的地方更黑）；(d)减小像素对比度（整幅图都趋于一个颜色）；
+
+OpenCV调整图像对比度和亮度时，公式为：$g(i,j)=\alpha f(i,j)+\beta$。但是不能浅显的讲$\alpha$是控制对比度，$\beta$是控制亮度的。
+
+对比度：需要通过$\alpha、\beta$一起控制（仅调整$\alpha$只能控制像素强度0附近的对比度，而这种做法只会导致像素强度大于0的部分更亮而已，根本看不到对比度提高的效果）。
+
+亮度：通过$\beta$控制。
+
+### 2.线性变换
+
+- 定义
+
+  使用 `cv2.addWeighted()` 函数，可以对图像的像素值进行加权平均，进而改变图像的整体亮度。亮度增益可以通过向每个像素值添加一个正值来实现。
+
+- 语法
+
+  ```
+  **cv2.addWeighted(src1, alpha, src2, beta, gamma)**
+  ```
+
+- 参数
+
+  - `src1`：第一张输入图像，它将被赋予权重 `alpha`。
+
+  - `alpha`：第一个输入图像的权重。
+
+  - `src2`：第二张输入图像，它将被赋予权重 `beta`。
+
+  - `beta`：第二个输入图像的权重。
+
+  - `gamma`：一个标量，将被添加到权重求和的结果上，可用于调整总体亮度。
+
+    计算公式为: dst = src1 * alpha + src2 * beta + gamma
+
+- 代码
+
+  ```python
+  import cv2
+  import numpy as np
+  # 加载图像
+  img = cv2.imread('./1.jpg')
+  # 设定亮度增益，例如设置为1.5倍亮度
+  alpha = 1.5
+  # 提升图像亮度
+  brightened_img = cv2.addWeighted(img, alpha, np.zeros_like(img), 0, 0)
+  # 显示和/或保存处理后的图像
+  cv2.imshow('Brightened Image', brightened_img)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+### 3.直接像素值修改
+
+- 定义
+
+  如果只需要增加或减少固定的亮度值，可以直接遍历图像像素并对每个像素值进行加减操作。
+
+- 语法
+
+  ```
+  numpy.clip(a, a_min, a_max)
+  ```
+
+   用于对数组中的元素进行限定，将超出指定范围的元素值截断至指定的最小值和最大值之间
+
+- 参数
+
+  - `a`：输入数组。
+
+  - `a_min`：指定的最小值，数组中所有小于 `a_min` 的元素将被替换为 `a_min`。
+
+  - `a_max`：指定的最大值，数组中所有大于 `a_max` 的元素将被替换为 `a_max`。
+
+- 代码
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  
+  window_name = 'Trackbar Demo'
+  cv2.namedWindow(window_name)
+  def on_trackbar_change(x):
+      x=x/255*(255--255)-255
+      # cv2.destroyWindow("brightness_conversion_image")
+      # 读取图片路径
+      path = "./1.jpg"
+      # 读取图片
+      image_np = cv2.imread(path)
+      # 亮度变换是对图像的每个通道的每个像素进行统一的加某个值
+      # np.clip是一个截取函数，用于截取数组中小于或者大于某值的部分，并使得被截取部分等于固定值。
+      # np.uint8是将值转换为0-255的整数
+      brightness_conversion_img = np.uint8(np.clip(image_np + x, 0, 255))
+      cv2.imshow("brightness_conversion_image", brightness_conversion_img)
+      cv2.imshow("image_np", image_np)
+      print(x)
+  # 创建滑动条并设置参数
+  trackbar_name = 'Threshold'
+  max_value = 255
+  initial_value = 100
+  on_trackbar_change(initial_value)
+  cv2.createTrackbar(trackbar_name, window_name, initial_value, max_value, on_trackbar_change)
+  cv2.waitKey(0)
+  ```
+
+  
+
 
   
 

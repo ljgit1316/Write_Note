@@ -126,7 +126,7 @@
 
 ​	词嵌入实际上是一类技术，单个词在预定义的向量空间中被表示为实数向量，每个单词都映射到一个向量。举个例子，比如在一个文本中包含“猫”“狗”“爱情”等若干单词，而这若干单词映射到向量空间中，“猫”对应的向量为（0.1 0.2 0.3），“狗”对应的向量为（0.2 0.2 0.4），“爱情”对应的映射为（-0.4 -0.5 -0.2）（本数据仅为示意）。像这种将文本X{x1,x2,x3,x4,x5……xn}映射到多维向量空间Y{y1,y2,y3,y4,y5……yn }，这个映射的过程就叫做词嵌入。
 
-![](.\NLP\13D1498B4DAD6BA24F3EC6C7AF6A0DD6.png)
+![](https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/13D1498B4DAD6BA24F3EC6C7AF6A0DD6.png)
 
 ​	此外，词嵌入还可以做类比，比如：v(“国王”)－v(“男人”)＋v(“女人”)≈v(“女王”)，v(“中国”)＋v(“首都”)≈v(“北京”)，当然还可以进行算法推理。
 
@@ -163,7 +163,7 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
 **示例**
 
-<img src=".\NLP\8a7e92cfbeb8f16d3b42c5e96378408b.png" style="zoom: 50%;float:left" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/8a7e92cfbeb8f16d3b42c5e96378408b.png" style="zoom: 50%;float:left" />
 
 ### 2.2 词频-逆文档频率(TF-IDF)
 
@@ -173,11 +173,11 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
 注意：在计算词频（TF）时，**分母是文档中的总词数**，而不考虑每个词是否重复。这意味着无论词是否重复，分母始终是文档中所有词的数量总和。
 
-<img src=".\NLP\4fbe22df-789b-484d-9866-8541f17499fb.png" style="zoom: 67%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/4fbe22df-789b-484d-9866-8541f17499fb.png" style="zoom: 67%;" />
 
 举个例子，如果词 "cat" 在一篇包含 100 个词的文章中出现了 5 次，那么它的词频为：
 
-<img src=".\NLP\25d6d5fa-6753-408b-9d7f-0947486e1a1c.png" style="zoom:67%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/25d6d5fa-6753-408b-9d7f-0947486e1a1c.png" style="zoom:67%;" />
 
 - 短语，句子或者文档的词频表示就是其组成单词‘one-hot’表示向量的总和。
 - “Fruit flies like time flies a fruit” ，DF表示为：[1,2,2,1,1,0,0,0]，TF表示为：[0.14,0.29,0.29,0.14,0.14,0,0,0]
@@ -189,25 +189,25 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
 ​	逆文档频率用来衡量一个词在整个文档集合（语料库）中的重要性。它的目的是降低那些在很多文档中频繁出现的词的权重，例如“the”、“is”这种常见词，或者低频罕见词tetrafluoroethylene(四氟乙烯)。计算公式如下：
 
-<img src=".\NLP\1fe67527-3116-4b14-9e35-816f84ffd977.png" style="zoom:67%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/1fe67527-3116-4b14-9e35-816f84ffd977.png" style="zoom:67%;" />
 
 其中，`D` 表示文档集合，`t` 是要计算的词。`+1` 是为了避免分母为 0 的情况。
 
 例如，如果有 1000 篇文档，而词 "cat" 仅在 10 篇文档中出现过，那么它的 IDF 计算如下：
 
-<img src=".\NLP\ada3b3f5-9afb-4917-bfbf-6b062283aa18.png" style="zoom:67%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/ada3b3f5-9afb-4917-bfbf-6b062283aa18.png" style="zoom:67%;" />
 
 **（3）TF-IDF 计算**
 
 ​	最终，TF-IDF 是将 TF 和 IDF 相乘得出的结果，公式如下：
 
-<img src=".\NLP\ff23ce7d-9065-42eb-acd4-8da919916206.png" style="zoom: 80%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/ff23ce7d-9065-42eb-acd4-8da919916206.png" style="zoom: 80%;" />
 
 通过这个方法，一个词在特定文档中出现的频率越高（TF高），并且在整个语料库中出现得越少（IDF高），它的 TF-IDF 值就越高。这样可以使模型更加关注那些在某篇文档中特别重要但不常见的词。
 
 **特性：**
 
-<img src=".\NLP\44c70e17-6adb-4cdb-b3e7-3e142e7712e7.png" style="zoom:50%;float:left" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/44c70e17-6adb-4cdb-b3e7-3e142e7712e7.png" style="zoom:50%;float:left" />
 
 **结论：**
 
@@ -299,7 +299,7 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
 **步骤 3：计算逆文档频率（IDF）**
 
-<img src=".\NLP\dcaf8966-d560-4172-bbda-4f50499297e7.png" style="zoom:67%;float:left" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/dcaf8966-d560-4172-bbda-4f50499297e7.png" style="zoom:67%;float:left" />
 
 **步骤 4：计算 TF-IDF**
 
@@ -316,7 +316,7 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
 **传统NLP中的特征工程缺点**
 
-<img src=".\NLP\efc1cafe-491d-40bd-a55b-5e2d2202ec0c.png" style="zoom: 50%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/efc1cafe-491d-40bd-a55b-5e2d2202ec0c.png" style="zoom: 50%;" />
 
 ## **3. 深度学习中NLP的特征输入**
 
@@ -350,23 +350,23 @@ banana的one-hot表示就是：[0，0，0，0，0，0，0，1]，"like a banana�
 
   已知一句话的前几个字，预测下一个字是什么，于是有了**NNLM 语言模型**搭建的网络结构图：
 
-  <img src=".\NLP\12b12316-da8d-47e9-bce7-65dbc633ce63.png" style="zoom: 50%;" />
+  <img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/12b12316-da8d-47e9-bce7-65dbc633ce63.png" style="zoom: 50%;" />
 
   具体怎么实施呢？先用最简单的方法来表示每个词，one-hot 表示为︰
 
   **dog=(0,0,0,0,1,0,0,0,0,...)；cat=(0,0,0,0,0,0,0,1,0,...) ；eat=(0,1,0,0,0,0,0,0,0,...)**
 
-  <img src=".\NLP\aad7055d-fe44-4bcd-aeb7-89e1cadfab59.png" style="zoom: 50%;" />
+  <img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/aad7055d-fe44-4bcd-aeb7-89e1cadfab59.png" style="zoom: 50%;" />
 
   可是 one-hot 表示法有诸多的缺陷，还是稠密的向量表示更好一些，那么怎么转换呢？加一个**矩阵映射**一下就好！
 
-  <img src=".\NLP\5e92abe8-9ab3-4d7b-a8c4-0607b68f0850.png" style="zoom:50%;" />
+  <img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/5e92abe8-9ab3-4d7b-a8c4-0607b68f0850.png" style="zoom:50%;" />
 
   映射之后的向量层如果单独拿出来看，还有办法找到原本的词是什么吗？
 
   One-hot表示法这时候就作为一个索引字典了，可以通过映射矩阵对应到具体的词向量。
 
-  ![](.\NLP\438c41de-6b51-4d9d-b664-c6f0375bfeac.png)
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/438c41de-6b51-4d9d-b664-c6f0375bfeac.png)
 
 ##### 词嵌入层的使用
 
@@ -470,7 +470,7 @@ tensor([[-0.4625, -0.1678, -2.0173, -0.0423, -1.4953]],
 
 - **Embedding类的本质**是一个大小为 `(num_embeddings, embedding_dim)` 的矩阵，每一行是某个词汇的嵌入向量。
 
-<img src=".\NLP\7203a708-d83b-4f08-b6d2-a8871d705880.png" style="zoom: 80%;" />
+<img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/7203a708-d83b-4f08-b6d2-a8871d705880.png" style="zoom: 80%;" />
 
 - **通过索引**，可以高效地从这个矩阵中提取对应词汇的向量表示，因为 `nn.Embedding` 在内部通过索引直接查找矩阵中的行，这种操作非常快速且方便。
 
@@ -645,7 +645,7 @@ print([sen.split()[:2] for sen in sentences], '->', [num_dic[n.item()] for n in 
 
   **Skip-gram 模型在处理大规模语料库时效果比 CBOW 模型更好**。
 
-  ![](.\NLP\fbf43b71-4fcf-4ce2-a23d-016b5c712d05.png)
+  ![](https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/fbf43b71-4fcf-4ce2-a23d-016b5c712d05.png)
 
 - 代码实现
 
@@ -764,7 +764,7 @@ print([sen.split()[:2] for sen in sentences], '->', [num_dic[n.item()] for n in 
 
   CBOW模型∶使用文本的中间词作为目标词（标签），**去掉了隐藏层。用上下文各词的词向量的均值**代替NNLM拼接起来的词向量。
 
-  <img src=".\NLP\a3079555-6a27-4d80-bbc8-b7576cb4a226.png" style="zoom: 50%;" />
+  <img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/a3079555-6a27-4d80-bbc8-b7576cb4a226.png" style="zoom: 50%;" />
 
   **CBOW对小型数据库比较合适。**
 
@@ -920,7 +920,7 @@ print([sen.split()[:2] for sen in sentences], '->', [num_dic[n.item()] for n in 
 
     保存和加载模型
 
-    <img src=".\NLP\e0906ae4-57ea-4783-a13f-52c5f8b4e78b.png" style="zoom:50%;float:left" />
+    <img src="https://github.com/ljgit1316/Picture_resource/blob/main/NLP_Pic/e0906ae4-57ea-4783-a13f-52c5f8b4e78b.png" style="zoom:50%;float:left" />
 
 - 代码示例
 
